@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <getopt.h>
 #include "process.h"
 
 bool parse_int(const char* str, int* var) {
