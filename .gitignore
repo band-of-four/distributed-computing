@@ -3,6 +3,7 @@
 !*.h
 !*.tex
 !*.pdf
+!Makefile
 
 # this files is provided by the task                                            
 common.h                                                                        
