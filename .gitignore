@@ -1,2 +1,10 @@
-*.out
-*.idea
+*
+!*.c
+!*.h
+!*.tex
+!*.pdf
+
+# this files is provided by the task                                            
+common.h                                                                        
+ipc.h                                                                           
+pa1.h                                                                           
