@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "utils.h"
 #include "pa1.h"
 #include "process.h"
 

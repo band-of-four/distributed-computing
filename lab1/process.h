@@ -7,4 +7,3 @@ typedef struct {
   int* channels;
 } __attribute__((packed)) Process;
 
-int parse_flag(int argc, char *argv[]);
