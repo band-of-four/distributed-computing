@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdlib.h>
 #include "ipc.h"
 #include "process.h"
 
@@ -14,5 +16,17 @@ int send_multicast(void * self, const Message * msg){
       send(process, i, msg);
     }
   }
+  return 0;
+}
+
+int receive(void * self, local_id from, Message * msg){
+  Process* process = (Process*) self;
+  char *buffer = (char*)malloc(sizeof(MessageHeader));
+  read(process->channels[from][0], buffer, sizeof(MessageHeader));
+  MessageHeader* header = (MessageHeader*)buffer;
+  buffer = realloc(buffer, header->s_payload_len);
+  read(process->channels[from][0], buffer, header->s_payload_len);
+  msg->s_header = *header;
+  memcpy(msg->s_payload, buffer, strlen(buffer));
   return 0;
 }
