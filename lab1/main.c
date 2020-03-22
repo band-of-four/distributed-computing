@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "process.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
-    int n = parse_flag(argc, argv);
+  int n = parse_flag(argc, argv);
 
 
   if (fork() == 0) {
