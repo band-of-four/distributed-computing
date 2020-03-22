@@ -13,9 +13,13 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < n; ++i) {
     child_processes[i].id = i + 1;
     child_processes[i].parent_pid = parent_pid;
+    
+    for (int k = 0; k < 11; ++k) {
+      child_processes[i].channels[k][0] = -1;
+      child_processes[i].channels[k][1] = -1;
+    }
 
-    for (int j = i; j < n; ++j) {
-      if (i == j) continue;
+    for (int j = i + 1; j < n; ++j) {
 
       int p[2];
       if (pipe(p) < 0) {
