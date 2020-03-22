@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
     if (fork() == 0) {
       printf(log_started_fmt, i + 1, getpid(), parent_pid);
       printf(log_done_fmt, i + 1);
-    } else {
       return 0;
     }
   }
+  printf(log_done_fmt, 0);
 }
