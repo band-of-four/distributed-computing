@@ -2,14 +2,15 @@
 #include <fcntl.h>
 #include "utils.h"
 #include "pa1.h"
-#include "process.h"
+#include "ipc.h"
 #include "common.h"
+#include "process.h"
 
 int main(int argc, char *argv[]) {
 
-  int n = parse_flag(argc, argv);
+  int n = parse_flag(argc, argv); // TODO: при n = 0 кидает seqfault
   const int parent_pid = getpid();
-  FILE *file_pipe = fopen(pipes_log, "a");
+  FILE *file_pipe = fopen(pipes_log, "a"); // TODO: есл файл существует, то продолжает запись (получаются лишние строчки)
 
   Process child_processes[n];
 
@@ -41,17 +42,13 @@ int main(int argc, char *argv[]) {
     if (fork() == 0) {
       child_processes[i].pid = getpid();
       Process p = child_processes[i];
-
-      printf(log_started_fmt, p.id, p.pid, p.parent_pid);
-      fprintf(file_pipe, log_started_fmt, p.id, p.pid, p.parent_pid);
-      printf(log_done_fmt, p.id);
-      fprintf(file_pipe, log_done_fmt, p.id);
+      working(p, file_pipe);
       return 0;
     }
   }
 
   printf(log_done_fmt, 0);
-  fprintf(file_pipe, log_done_fmt, 0); // у главного потока же id = 0?
+  fprintf(file_pipe, log_done_fmt, 0);
 
   fclose(file_pipe);
 }
