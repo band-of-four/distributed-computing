@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include "utils.h"
 #include "pa1.h"
 #include "ipc.h"
@@ -10,7 +11,8 @@ int main(int argc, char *argv[]) {
 
   int n = parse_flag(argc, argv); // TODO: при n = 0 кидает seqfault
   const int parent_pid = getpid();
-  FILE *file_pipe = fopen(pipes_log, "a"); // TODO: есл файл существует, то продолжает запись (получаются лишние строчки)
+  FILE *file_pipe = fopen(pipes_log,
+                          "a"); // TODO: если файл существует, то продолжает запись (получаются лишние строчки)
 
   Process child_processes[n];
 
@@ -47,7 +49,16 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  // TODO: проверить получение всех DONE
+  Message received_mes;
+  for (int i = 0; i < n; ++i) {
+    while (true) {
+      //receive(parent, i, &received_mes); // TODO: создать структуру для родмтельского процесса
+      if (received_mes.s_header.s_type == DONE) {
+        continue;
+      }
+    }
+  }
+
   printf(log_done_fmt, 0);
   fprintf(file_pipe, log_done_fmt, 0);
 
