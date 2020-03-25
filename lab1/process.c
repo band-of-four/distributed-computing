@@ -39,7 +39,9 @@ int working(Process p, FILE *file_pipe) {
   }
 
   //пишем done
-  //закрываем пайп
+  header.s_type = DONE;
+  header.s_local_time = time(NULL);
+  sprintf(message.s_payload, log_done_fmt, p.id);
 
   printf(log_done_fmt, p.id);
   fprintf(file_pipe, log_done_fmt, p.id);
