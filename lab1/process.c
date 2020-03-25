@@ -33,6 +33,7 @@ int working(Process p, FILE *file_pipe) {
         receive(&p, i, &received_mes);
         if (received_mes.s_header.s_type == STARTED) {
           continue;
+          // TODO: закрыть пайпы
         }
       }
     }
@@ -42,6 +43,8 @@ int working(Process p, FILE *file_pipe) {
   header.s_type = DONE;
   header.s_local_time = time(NULL);
   sprintf(message.s_payload, log_done_fmt, p.id);
+
+  send(&p, 0, &message);
 
   printf(log_done_fmt, p.id);
   fprintf(file_pipe, log_done_fmt, p.id);
