@@ -6,6 +6,7 @@
 int send(void *self, local_id dst, const Message *msg) {
   Process* process = (Process*) self;
   write(process->channels[dst][1], msg, sizeof(msg));
+  // TODO: log events
   return 0;
 }
 
@@ -16,6 +17,7 @@ int send_multicast(void * self, const Message * msg){
       send(process, i, msg);
     }
   }
+  // TODO: log events
   return 0;
 }
 
@@ -28,6 +30,7 @@ int receive(void * self, local_id from, Message * msg){
   read(process->channels[from][0], buffer, header->s_payload_len);
   msg->s_header = *header;
   memcpy(msg->s_payload, buffer, strlen(buffer));
+  // TODO: log events
   return 0;
 }
 
@@ -38,5 +41,6 @@ int receive_any(void * self, Message * msg){
       receive(process, i, msg);
     }
   }
+  // TODO: log events
   return 0;
 }

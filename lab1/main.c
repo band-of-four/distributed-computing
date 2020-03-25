@@ -47,9 +47,10 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  // проверить получение всех DONE
+  // TODO: проверить получение всех DONE
   printf(log_done_fmt, 0);
   fprintf(file_pipe, log_done_fmt, 0);
 
+  // TODO: закрыть пайпы
   fclose(file_pipe);
 }
