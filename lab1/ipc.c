@@ -30,3 +30,13 @@ int receive(void * self, local_id from, Message * msg){
   memcpy(msg->s_payload, buffer, strlen(buffer));
   return 0;
 }
+
+int receive_any(void * self, Message * msg){
+  Process* process = (Process*) self;
+  for (int i = 0; i < 11; ++i) {
+    if (process->channels[i][0] != -1 && i != process->id) {
+      receive(process, i, msg);
+    }
+  }
+  return 0;
+}
