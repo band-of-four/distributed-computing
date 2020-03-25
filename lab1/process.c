@@ -1,5 +1,6 @@
 #include <time.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include "ipc.h"
 #include "common.h"
 #include "pa1.h"
@@ -23,6 +24,22 @@ int working(Process p, FILE *file_pipe) {
   // ------------------------
 
   send_multicast(&p, &message);
+
+  // ждем, пока все потоки напишут STARTED
+  Message received_mes;
+  for (int i = 0; i < 11; ++i) {
+    if (p.channels[i][0] != -1) {
+      while (true){
+        receive(&p, i, &received_mes);
+        if (received_mes.s_header.s_type == STARTED) {
+          continue;
+        }
+      }
+    }
+  }
+
+  //пишем done
+  //закрываем пайп
 
   printf(log_done_fmt, p.id);
   fprintf(file_pipe, log_done_fmt, p.id);
