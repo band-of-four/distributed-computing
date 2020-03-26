@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     processes[i].id = i;
     processes[i].parent_pid = parent_pid;
 
-    for (int k = i; k < 11; ++k) {
+    for (int k = i; k <= 11; ++k) {
       processes[i].channels[k][0] = -1;
       processes[i].channels[k][1] = -1;
     }

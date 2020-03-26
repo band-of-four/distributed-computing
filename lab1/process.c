@@ -29,15 +29,11 @@ int working(Process p, FILE *file_pipe) {
   // ждем, пока все потоки напишут STARTED
   Message received_mes;
   for (int i = 1; i <= 11; ++i) {
-    if (p.channels[i][0] == -1) continue;
-    while (true){
-      receive(&p, i, &received_mes);
-      if (received_mes.s_header.s_type == STARTED) {
-        break;
-        // TODO: закрыть пайпы
-      }
-    }
+    if (p.channels[i][0] == -1 || p.id == i) continue;
+    receive(&p, i, &received_mes);
+      // TODO: закрыть пайпы
   }
+
 
   //пишем done
   header.s_type = DONE;
