@@ -1,6 +1,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <string.h>
 #include "ipc.h"
 #include "common.h"
 #include "pa1.h"
@@ -16,7 +17,7 @@ int working(Process p, FILE *file_pipe) {
 
   MessageHeader header;
   header.s_local_time = time(NULL);
-  header.s_payload_len = sizeof(message.s_payload);
+  header.s_payload_len = strlen(message.s_payload);
   header.s_type = STARTED;
   header.s_magic = MESSAGE_MAGIC;
 
@@ -27,14 +28,13 @@ int working(Process p, FILE *file_pipe) {
 
   // ждем, пока все потоки напишут STARTED
   Message received_mes;
-  for (int i = 0; i < 11; ++i) {
-    if (p.channels[i][0] != -1) {
-      while (true){
-        receive(&p, i, &received_mes);
-        if (received_mes.s_header.s_type == STARTED) {
-          continue;
-          // TODO: закрыть пайпы
-        }
+  for (int i = 1; i <= 11; ++i) {
+    if (p.channels[i][0] == -1) continue;
+    while (true){
+      receive(&p, i, &received_mes);
+      if (received_mes.s_header.s_type == STARTED) {
+        break;
+        // TODO: закрыть пайпы
       }
     }
   }
