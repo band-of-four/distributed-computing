@@ -34,7 +34,7 @@ int working(Process p, FILE *file_pipe) {
       receive(&p, i, &received_mes);
       if (received_mes.s_header.s_type == STARTED) {
         break;
-        // TODO: закрыть пайпы
+        close(p.channels[i][0]);  // average process do not need to receive anything more from others
       }
     }
   }
