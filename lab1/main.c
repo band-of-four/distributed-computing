@@ -13,19 +13,21 @@ int main(int argc, char *argv[]) {
   const int parent_pid = getpid();
   FILE *file_pipe = fopen(pipes_log,
                           "a"); // TODO: если файл существует, то продолжает запись (получаются лишние строчки)
+  
+  Process processes[n+1];               // process[0] is a parent process
 
-  Process child_processes[n];
+  printf("DONE = %d\n", DONE);
 
-  for (int i = 0; i < n; ++i) {
-    child_processes[i].id = i + 1;
-    child_processes[i].parent_pid = parent_pid;
+  for (int i = 0; i <= n; ++i) {
+    processes[i].id = i;
+    processes[i].parent_pid = parent_pid;
 
-    for (int k = 0; k < 11; ++k) {
-      child_processes[i].channels[k][0] = -1;
-      child_processes[i].channels[k][1] = -1;
+    for (int k = i; k < 11; ++k) {
+      processes[i].channels[k][0] = -1;
+      processes[i].channels[k][1] = -1;
     }
 
-    for (int j = i + 1; j < n; ++j) {
+    for (int j = i + 1; j <= n; ++j) {
 
       int p[2];
       if (pipe(p) < 0) {
@@ -33,28 +35,28 @@ int main(int argc, char *argv[]) {
         return 1;
       }
 
-      child_processes[i].channels[j][0] = p[0]; // i-th process read from j-th process
-      child_processes[i].channels[j][1] = p[1]; // i-th process write to j-th process
-      child_processes[j].channels[i][0] = p[1]; // j-th process read from i-th process
-      child_processes[j].channels[i][1] = p[0]; // j-th process write to i-th process
+      processes[i].channels[j][0] = p[0]; // i-th process read from j-th process
+      processes[i].channels[j][1] = p[1]; // i-th process write to j-th process
+      processes[j].channels[i][0] = p[1]; // j-th process read from i-th process
+      processes[j].channels[i][1] = p[0]; // j-th process write to i-th process
     }
   }
 
-  for (int i = 0; i < n; ++i) {
+  for (int i = 1; i <= n; ++i) {
     if (fork() == 0) {
-      child_processes[i].pid = getpid();
-      Process p = child_processes[i];
+      processes[i].pid = getpid();
+      Process p = processes[i];
       working(p, file_pipe);
       return 0;
     }
   }
 
   Message received_mes;
-  for (int i = 0; i < n; ++i) {
+  for (int i = 1; i <= n; ++i) {
     while (true) {
-      //receive(parent, i, &received_mes); // TODO: создать структуру для родмтельского процесса
+      receive(&processes[0], i, &received_mes);
       if (received_mes.s_header.s_type == DONE) {
-        continue;
+        break;
       }
     }
   }
