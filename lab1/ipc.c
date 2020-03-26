@@ -5,7 +5,7 @@
 
 int send(void *self, local_id dst, const Message *msg) {
   Process *process = (Process *) self;
-  write(process->channels[dst][1], msg, sizeof(msg));
+  write(process->channels[dst][1], msg, sizeof(MessageHeader) + msg->s_header.s_payload_len);
   printf("%d send to %d. Len: %d, msg: %s", process->id, dst, msg->s_header.s_payload_len, msg->s_payload);
   // TODO: log events
   return 0;
