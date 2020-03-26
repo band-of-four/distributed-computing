@@ -12,7 +12,7 @@ int send(void *self, local_id dst, const Message *msg) {
 
 int send_multicast(void * self, const Message * msg){
   Process* process = (Process*) self;
-  for (int i = 0; i < 11; ++i){
+  for (int i = 0; i <= 11; ++i){
     if (process->channels[i][0] != -1 && i != process->id){
       send(process, i, msg);
     }
@@ -27,16 +27,16 @@ int receive(void * self, local_id from, Message * msg){
   read(process->channels[from][0], buffer, sizeof(MessageHeader));
   MessageHeader* header = (MessageHeader*)buffer;
   buffer = realloc(buffer, header->s_payload_len);
-  read(process->channels[from][0], buffer, header->s_payload_len);
+  //read(process->channels[from][0], buffer, header->s_payload_len); // hangs here
   msg->s_header = *header;
-  memcpy(msg->s_payload, buffer, strlen(buffer));
+  //memcpy(msg->s_payload, buffer, strlen(buffer));
   // TODO: log events
   return 0;
 }
 
 int receive_any(void * self, Message * msg){
   Process* process = (Process*) self;
-  for (int i = 0; i < 11; ++i) {
+  for (int i = 0; i <= 11; ++i) {
     if (process->channels[i][0] != -1 && i != process->id) {
       receive(process, i, msg);
     }

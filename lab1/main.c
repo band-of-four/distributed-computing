@@ -55,9 +55,7 @@ int main(int argc, char *argv[]) {
   for (int i = 1; i <= n; ++i) {
     while (true) {
       receive(&processes[0], i, &received_mes);
-      if (received_mes.s_header.s_type == DONE) {
-        break;
-      }
+      if (received_mes.s_header.s_type == DONE) break;
     }
   }
 
