@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
   const int parent_pid = getpid();
   FILE *file_pipe = fopen(pipes_log,
                           "a"); // TODO: если файл существует, то продолжает запись (получаются лишние строчки)
-  
-  Process processes[n+1];               // process[0] is a parent process
+
+  Process processes[n + 1];               // process[0] is a parent process
 
   printf("DONE = %d\n", DONE);
 
@@ -53,13 +53,8 @@ int main(int argc, char *argv[]) {
 
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
-    while (true) {
-      receive(&processes[0], i, &received_mes);
-      if (received_mes.s_header.s_type == DONE) {
-        break;
-        close(processes[0].channels[i][0]);
-      }
-    }
+    receive(&processes[0], i, &received_mes);
+    close(processes[0].channels[i][0]);
   }
 
   printf(log_done_fmt, 0);
