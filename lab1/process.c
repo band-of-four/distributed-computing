@@ -40,9 +40,9 @@ int working(Process p, FILE *file_pipe) {
   header.s_local_time = time(NULL);
   sprintf(message.s_payload, log_done_fmt, p.id);
 
+  printf(log_done_fmt, p.id);
   send(&p, 0, &message);
 
-  printf(log_done_fmt, p.id);
   fprintf(file_pipe, log_done_fmt, p.id);
   return 0;
 }
