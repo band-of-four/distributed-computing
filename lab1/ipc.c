@@ -6,11 +6,11 @@
 int send(void *self, local_id dst, const Message *msg) {
   Process *process = (Process *) self;
   if (write(process->channels[dst][1], &msg->s_header, sizeof(MessageHeader)) < sizeof(MessageHeader)) {
-    printf("Error while sending header: from = %d, to = %d\n", process->id, process->channels[dst][1]);
+    printf("Error while sending header: from = %d, to = %d (descriptor = %d)\n", process->id, dst, process->channels[dst][1]);
     exit(1);
   }
   if (write(process->channels[dst][1], msg->s_payload, msg->s_header.s_payload_len) < msg->s_header.s_payload_len){
-    printf("Error while sending payload: from = %d, to = %d\n", process->id, process->channels[dst][1]);
+    printf("Error while sending payload: from = %d, to = %d (descriptor = %d)\n", process->id, dst, process->channels[dst][1]);
     exit(1);
   }
   printf("%d send to %d. Len: %d, msg: %s", process->id, dst, msg->s_header.s_payload_len, msg->s_payload);
