@@ -31,7 +31,7 @@ int working(Process p, FILE *file_pipe) {
   for (int i = 1; i <= 11; ++i) {
     if (p.channels[i][0] == -1 || p.id == i) continue;
     receive(&p, i, &received_mes);
-    close(p.channels[i][0]);  // average process do not need to receive anything more from others
+    //close(p.channels[i][0]);  // average process do not need to receive anything more from others
   }
 
 

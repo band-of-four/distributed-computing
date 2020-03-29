@@ -1,2 +1,2 @@
 lab1: 
-	clang -std=c99 -Wall -pedantic *.c
+	clang -g -std=c99 -Wall -pedantic *.c

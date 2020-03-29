@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "ipc.h"
 #include "process.h"
 
@@ -9,8 +10,11 @@ int send(void *self, local_id dst, const Message *msg) {
     printf("Error while sending header: from = %d, to = %d (descriptor = %d)\n", process->id, dst, process->channels[dst][1]);
     exit(1);
   }
-  if (write(process->channels[dst][1], msg->s_payload, msg->s_header.s_payload_len) < msg->s_header.s_payload_len){
+  int w = write(process->channels[dst][1], msg->s_payload, msg->s_header.s_payload_len);
+  if (w < msg->s_header.s_payload_len) {
     printf("Error while sending payload: from = %d, to = %d (descriptor = %d)\n", process->id, dst, process->channels[dst][1]);
+    printf("Expected: %d symbols, actual: %d symbols.\n", msg->s_header.s_payload_len, w);
+    printf("Description: %s.\n", strerror(errno));
     exit(1);
   }
   printf("%d send to %d. Len: %d, msg: %s", process->id, dst, msg->s_header.s_payload_len, msg->s_payload);
@@ -45,7 +49,7 @@ int receive(void *self, local_id from, Message *msg) {
   msg->s_header = *header;
   memcpy(&(msg->s_header), header, sizeof(MessageHeader));
   memcpy(msg->s_payload, buffer, header->s_payload_len);
-  printf("%d from %d Message: %s\n",  process->id, from, msg->s_payload);
+  printf("%d from %d Message: %s\n",  process->id, from, buffer);
   // TODO: log events
   return 0;
 }

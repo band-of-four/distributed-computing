@@ -16,8 +16,6 @@ int main(int argc, char *argv[]) {
 
   Process processes[n + 1];               // process[0] is a parent process
 
-  printf("DONE = %d\n", DONE);
-
   for (int i = 0; i <= n; ++i) {
     processes[i].id = i;
     processes[i].parent_pid = parent_pid;
@@ -54,7 +52,7 @@ int main(int argc, char *argv[]) {
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
-    close(processes[0].channels[i][0]);
+    //close(processes[0].channels[i][0]);
   }
 
   printf(log_done_fmt, 0);
