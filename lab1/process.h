@@ -9,4 +9,4 @@ typedef struct {
   int channels[12][2];
 } __attribute__((packed)) Process;
 
-int working(Process p, FILE *file_pipe);
+int working(Process p, FILE *event_file);

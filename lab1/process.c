@@ -7,9 +7,9 @@
 #include "pa1.h"
 #include "process.h"
 
-int working(Process p, FILE *file_pipe) {
+int working(Process p, FILE *event_file) {
   printf(log_started_fmt, p.id, p.pid, p.parent_pid);
-  fprintf(file_pipe, log_started_fmt, p.id, p.pid, p.parent_pid);
+  fprintf(event_file, log_started_fmt, p.id, p.pid, p.parent_pid);
 
   // creating message
   Message message;
@@ -43,6 +43,6 @@ int working(Process p, FILE *file_pipe) {
   printf(log_done_fmt, p.id);
   send(&p, 0, &message);
 
-  fprintf(file_pipe, log_done_fmt, p.id);
+  fprintf(event_file, log_done_fmt, p.id);
   return 0;
 }

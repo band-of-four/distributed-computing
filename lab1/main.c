@@ -11,7 +11,8 @@ int main(int argc, char *argv[]) {
 
   int n = parse_flag(argc, argv);
   const int parent_pid = getpid();
-  FILE *file_pipe = fopen(pipes_log, "w");
+  FILE *event_file = fopen(events_log, "w");
+  FILE *pipe_file = fopen(pipes_log, "w");
 
   Process processes[n + 1];               // process[0] is a parent process
 
@@ -42,6 +43,9 @@ int main(int argc, char *argv[]) {
       processes[i].channels[j][1] = i_to_j[1]; // i-th process write to j-th process
       processes[j].channels[i][0] = i_to_j[0]; // j-th process read from i-th process
       processes[j].channels[i][1] = j_to_i[1]; // j-th process write to i-th process
+
+      // TODO: find a way to remove dublicate rows in pipes.log
+      fprintf(pipe_file, "%d from %d -- read %d | write %d\n", i, j, j_to_i[0], i_to_j[0]);
     }
   }
 
@@ -54,7 +58,7 @@ int main(int argc, char *argv[]) {
 //          printf("\t\t%d-th process read from %d-th process: %d\n", i, j, p.channels[j][0]);
 //          printf("\t\t%d-th process write to %d-th process: %d\n", i, j, p.channels[j][1]);
 //      }
-      working(p, file_pipe);
+      working(p, event_file);
       return 0;
     }
   }
@@ -66,8 +70,9 @@ int main(int argc, char *argv[]) {
   }
 
   printf(log_done_fmt, 0);
-  fprintf(file_pipe, log_done_fmt, 0);
+  fprintf(event_file, log_done_fmt, 0);
 
   // TODO: закрыть пайпы
-  fclose(file_pipe);
+  fclose(event_file);
+  fclose(pipe_file);
 }
