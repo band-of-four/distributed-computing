@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
-    //close(processes[0].channels[i][0]);
+    close(processes[0].channels[i][0]);
   }
 
   printf(log_done_fmt, 0);
