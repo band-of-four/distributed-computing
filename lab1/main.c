@@ -9,10 +9,9 @@
 
 int main(int argc, char *argv[]) {
 
-  int n = parse_flag(argc, argv); // TODO: при n = 0 кидает seqfault
+  int n = parse_flag(argc, argv);
   const int parent_pid = getpid();
-  FILE *file_pipe = fopen(pipes_log,
-                          "a"); // TODO: если файл существует, то продолжает запись (получаются лишние строчки)
+  FILE *file_pipe = fopen(pipes_log, "w");
 
   Process processes[n + 1];               // process[0] is a parent process
 
