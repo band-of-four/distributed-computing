@@ -3,9 +3,13 @@
 #include <errno.h>
 #include "ipc.h"
 #include "process.h"
+#include <fcntl.h>
 
 int send(void *self, local_id dst, const Message *msg) {
   Process *process = (Process *) self;
+    if(fcntl(process->channels[dst][1], F_GETFD) == -1 || errno == EBADF){
+        printf("Descriptor: %d is closed \n", process->channels[dst][1]);
+    }
   if (write(process->channels[dst][1], &msg->s_header, sizeof(MessageHeader)) < sizeof(MessageHeader)) {
     printf("Error while sending header: from = %d, to = %d (descriptor = %d)\n", process->id, dst, process->channels[dst][1]);
     exit(1);
@@ -15,9 +19,12 @@ int send(void *self, local_id dst, const Message *msg) {
     printf("Error while sending payload: from = %d, to = %d (descriptor = %d)\n", process->id, dst, process->channels[dst][1]);
     printf("Expected: %d symbols, actual: %d symbols.\n", msg->s_header.s_payload_len, w);
     printf("Description: %s.\n", strerror(errno));
-    exit(1);
+    if(fcntl(process->channels[dst][1], F_GETFD) == -1 || errno == EBADF){
+        printf("Descriptor: %d is closed \n", process->channels[dst][1]);
+    }
+//    exit(1);
   }
-  printf("%d send to %d. Len: %d, msg: %s", process->id, dst, msg->s_header.s_payload_len, msg->s_payload);
+  printf("%d send to %d into %d. Len: %d, msg: %s", process->id, dst, process->channels[dst][1], msg->s_header.s_payload_len, msg->s_payload);
   // TODO: log events
   return 0;
 }
@@ -38,13 +45,13 @@ int receive(void *self, local_id from, Message *msg) {
   MessageHeader *header = (MessageHeader *) malloc(sizeof(header));
   int header_size = 0;
   while (header_size < sizeof(MessageHeader)) {
-    header_size += read(process->channels[from][0], header + header_size, sizeof(MessageHeader));
+    header_size += read(process->channels[from][0], header + header_size, sizeof(MessageHeader)-header_size);
   }
-  printf("Id: %d, from: %d, type: %d, len %d\n", process->id, from, header->s_type, header->s_payload_len);
+  printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type, header->s_payload_len);
   char *buffer = (char *) malloc(header->s_payload_len);
   int message_size = 0;
   while (message_size < header->s_payload_len){
-    message_size += read(process->channels[from][0], buffer, header->s_payload_len); // hangs here;
+    message_size += read(process->channels[from][0], buffer, header->s_payload_len-message_size); // hangs here;
   }
   msg->s_header = *header;
   memcpy(&(msg->s_header), header, sizeof(MessageHeader));

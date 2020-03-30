@@ -27,16 +27,22 @@ int main(int argc, char *argv[]) {
 
     for (int j = i + 1; j <= n; ++j) {
 
-      int p[2];
-      if (pipe(p) < 0) {
+      int j_to_i[2];
+      if (pipe(j_to_i) < 0) {
         printf("Error while creating pipe.\n");
         return 1;
       }
 
-      processes[i].channels[j][0] = p[0]; // i-th process read from j-th process
-      processes[i].channels[j][1] = p[1]; // i-th process write to j-th process
-      processes[j].channels[i][0] = p[1]; // j-th process read from i-th process
-      processes[j].channels[i][1] = p[0]; // j-th process write to i-th process
+      int i_to_j[2];
+      if (pipe(i_to_j) < 0) {
+        printf("Error while creating pipe.\n");
+        return 1;
+      }
+
+      processes[i].channels[j][0] = j_to_i[0]; // i-th process read from j-th process
+      processes[i].channels[j][1] = i_to_j[1]; // i-th process write to j-th process
+      processes[j].channels[i][0] = i_to_j[0]; // j-th process read from i-th process
+      processes[j].channels[i][1] = j_to_i[1]; // j-th process write to i-th process
     }
   }
 
@@ -44,6 +50,11 @@ int main(int argc, char *argv[]) {
     if (fork() == 0) {
       processes[i].pid = getpid();
       Process p = processes[i];
+//      printf("\nprocesses pid = %d, pipes:\n", p.id);
+//      for (int j = 0; j <= n; ++j) {
+//          printf("\t\t%d-th process read from %d-th process: %d\n", i, j, p.channels[j][0]);
+//          printf("\t\t%d-th process write to %d-th process: %d\n", i, j, p.channels[j][1]);
+//      }
       working(p, file_pipe);
       return 0;
     }
