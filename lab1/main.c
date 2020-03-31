@@ -104,6 +104,11 @@ int main(int argc, char *argv[]) {
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
+    while (received_mes.s_header.s_type != DONE)
+    {
+      receive(&processes[0], i, &received_mes);
+    }
+    printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
     close(processes[0].channels[i][0]);
   }
 
