@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 
   int n = parse_flag(argc, argv);
   const int parent_pid = getpid();
-  FILE *event_file = fopen(events_log, "w");
+  FILE *event_file = fopen(events_log, "a");
   FILE *pipe_file = fopen(pipes_log, "w");
 
   Process processes[n + 1];               // process[0] is a parent process
@@ -44,6 +44,10 @@ int main(int argc, char *argv[]) {
       processes[j].channels[i][0] = i_to_j[0]; // j-th process read from i-th process
       processes[j].channels[i][1] = j_to_i[1]; // j-th process write to i-th process
 
+//      printf("%d-th process read from %d-th process: %d\n", i, j , j_to_i[0]);
+//      printf("%d-th process write to %d-th process: %d\n", i, j , i_to_j[1]);
+//      printf("%d-th process read from %d-th process: %d\n", j, i , i_to_j[0]);
+//      printf("%d-th process write to %d-th process: %d\n", j, i , j_to_i[1]);
       // TODO: find a way to remove dublicate rows in pipes.log
       fprintf(pipe_file, "opened pipe from process %d to process %d\n", i, j);
       fprintf(pipe_file, "opened pipe from process %d to process %d\n", j, i);
@@ -56,11 +60,23 @@ int main(int argc, char *argv[]) {
     if (fork() == 0) {
       processes[i].pid = getpid();
       Process p = processes[i];
-//      printf("\nprocesses pid = %d, pipes:\n", p.id);
-//      for (int j = 0; j <= n; ++j) {
-//          printf("\t\t%d-th process read from %d-th process: %d\n", i, j, p.channels[j][0]);
-//          printf("\t\t%d-th process write to %d-th process: %d\n", i, j, p.channels[j][1]);
-//      }
+      for (int j = 0; j <= n; ++j) {
+        for (int k = 0; k <= n; ++k) {
+          if (j == k) continue;
+          if (j == i) {
+//            printf("Process: %d: %d-th process close write pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][1]);
+            close(processes[k].channels[j][1]); // остальным процессам закрываем все пайпы на запись
+          } else if (k == i) {
+//            printf("Process: %d: %d-th process close read pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][0]);
+            close(processes[j].channels[k][0]); // у текущего процесса закрываем все пайпы на чтение
+          } else {
+//            printf("Process: %d: %d-th process close write pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][1]);
+//            printf("Process: %d: %d-th process close read pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][0]);
+            close(processes[j].channels[k][0]); // остальные папы просто закрываем
+            close(processes[j].channels[k][1]);
+          }
+        }
+      }
       working(p, event_file);
       return 0;
     }
