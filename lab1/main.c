@@ -90,7 +90,6 @@ int main(int argc, char *argv[]) {
 
   printf(log_done_fmt, 0);
   fprintf(event_file, log_done_fmt, 0);
-
-  // TODO: закрыть пайпы
+  
   fclose(event_file);
 }
