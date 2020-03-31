@@ -20,7 +20,6 @@ int working(Process p, FILE *event_file) {
   header.s_payload_len = strlen(message.s_payload);
   header.s_type = STARTED;
   header.s_magic = MESSAGE_MAGIC;
-
   message.s_header = header;
   // ------------------------
 
@@ -35,12 +34,17 @@ int working(Process p, FILE *event_file) {
   }
 
 
+
   //пишем done
-  header.s_type = DONE;
-  header.s_local_time = time(NULL);
   sprintf(message.s_payload, log_done_fmt, p.id);
 
-  printf(log_done_fmt, p.id);
+  MessageHeader header_done;
+  header_done.s_local_time = time(NULL);
+  header_done.s_payload_len = strlen(message.s_payload);
+  header_done.s_type = DONE;
+  header_done.s_magic = MESSAGE_MAGIC;
+  message.s_header = header_done;
+
   send(&p, 0, &message);
 
   fprintf(event_file, log_done_fmt, p.id);
