@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 //      printf("%d-th process write to %d-th process: %d\n", i, j , i_to_j[1]);
 //      printf("%d-th process read from %d-th process: %d\n", j, i , i_to_j[0]);
 //      printf("%d-th process write to %d-th process: %d\n", j, i , j_to_i[1]);
-      // TODO: find a way to remove dublicate rows in pipes.log
+      // TODO: find a way to rаemove dublicate rows in pipes.log
       fprintf(pipe_file, "opened pipe from process %d to process %d\n", i, j);
       fprintf(pipe_file, "opened pipe from process %d to process %d\n", j, i);
     }
@@ -82,6 +82,25 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  int i = 0;
+  for (int j = 0; j <= n; ++j) {
+    for (int k = 0; k <= n; ++k) {
+      if (j == k) continue;
+      if (j == i) {
+//        printf("Process: %d: %d-th process close write pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][1]);
+        close(processes[k].channels[j][1]); // остальным процессам закрываем все пайпы на запись
+      } else if (k == i) {
+//        printf("Process: %d: %d-th process close read pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][0]);
+        close(processes[j].channels[k][0]); // у текущего процесса закрываем все пайпы на чтение
+      } else {
+//        printf("Process: %d: %d-th process close write pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][1]);
+//        printf("Process: %d: %d-th process close read pipe %d-th process: %d\n",i, j, k , processes[j].channels[k][0]);
+        close(processes[j].channels[k][0]); // остальные папы просто закрываем
+        close(processes[j].channels[k][1]);
+      }
+    }
+  }
+
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
@@ -90,6 +109,6 @@ int main(int argc, char *argv[]) {
 
   printf(log_done_fmt, 0);
   fprintf(event_file, log_done_fmt, 0);
-  
+
   fclose(event_file);
 }
