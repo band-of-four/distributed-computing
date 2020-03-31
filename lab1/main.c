@@ -45,9 +45,12 @@ int main(int argc, char *argv[]) {
       processes[j].channels[i][1] = j_to_i[1]; // j-th process write to i-th process
 
       // TODO: find a way to remove dublicate rows in pipes.log
-      fprintf(pipe_file, "%d from %d -- read %d | write %d\n", i, j, j_to_i[0], i_to_j[0]);
+      fprintf(pipe_file, "opened pipe from process %d to process %d\n", i, j);
+      fprintf(pipe_file, "opened pipe from process %d to process %d\n", j, i);
     }
   }
+
+  fclose(pipe_file);
 
   for (int i = 1; i <= n; ++i) {
     if (fork() == 0) {
@@ -74,5 +77,4 @@ int main(int argc, char *argv[]) {
 
   // TODO: закрыть пайпы
   fclose(event_file);
-  fclose(pipe_file);
 }
