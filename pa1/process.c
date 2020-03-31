@@ -33,8 +33,6 @@ int working(Process p, FILE *event_file) {
     close(p.channels[i][0]);  // average process do not need to receive anything more from others
   }
 
-
-
   //пишем done
   sprintf(message.s_payload, log_done_fmt, p.id);
 
@@ -46,6 +44,7 @@ int working(Process p, FILE *event_file) {
   message.s_header = header_done;
 
   send(&p, 0, &message);
+  printf("%s", message.s_payload);
 
   fprintf(event_file, log_done_fmt, p.id);
   return 0;

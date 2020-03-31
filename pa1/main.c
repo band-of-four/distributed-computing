@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <sys/wait.h>
 #include "utils.h"
 #include "pa1.h"
 #include "ipc.h"
@@ -108,9 +109,10 @@ int main(int argc, char *argv[]) {
     {
       receive(&processes[0], i, &received_mes);
     }
-    printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
+    //printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
     close(processes[0].channels[i][0]);
   }
+  while (wait(NULL) > 0) {}
 
   printf(log_done_fmt, 0);
   fprintf(event_file, log_done_fmt, 0);
