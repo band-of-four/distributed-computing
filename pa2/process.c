@@ -4,16 +4,15 @@
 #include <string.h>
 #include "ipc.h"
 #include "common.h"
-#include "pa1.h"
 #include "process.h"
 
 int working(Process p, FILE *event_file) {
-  printf(log_started_fmt, p.id, p.pid, p.parent_pid);
-  fprintf(event_file, log_started_fmt, p.id, p.pid, p.parent_pid);
+  //printf(log_started_fmt, p.id, p.pid, p.parent_pid);
+  //fprintf(event_file, log_started_fmt, p.id, p.pid, p.parent_pid);
 
   // creating message
   Message message;
-  sprintf(message.s_payload, log_started_fmt, p.id, p.pid, p.parent_pid);
+  //sprintf(message.s_payload, log_started_fmt, p.id, p.pid, p.parent_pid);
 
   MessageHeader header;
   header.s_local_time = time(NULL);
@@ -36,7 +35,7 @@ int working(Process p, FILE *event_file) {
 
 
   //пишем done
-  sprintf(message.s_payload, log_done_fmt, p.id);
+  //sprintf(message.s_payload, log_done_fmt, p.id);
 
   MessageHeader header_done;
   header_done.s_local_time = time(NULL);
@@ -47,6 +46,6 @@ int working(Process p, FILE *event_file) {
 
   send(&p, 0, &message);
 
-  fprintf(event_file, log_done_fmt, p.id);
+  //fprintf(event_file, log_done_fmt, p.id);
   return 0;
 }
