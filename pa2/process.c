@@ -2,7 +2,8 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>
-#include <pa2345.h>
+#include "banking.h"
+#include "pa2345.h"
 #include "ipc.h"
 #include "common.h"
 #include "process.h"
@@ -67,9 +68,42 @@ int working(Process p, FILE *event_file) {
 
       // если пришло сообщение трансфер
       if (received_mes.s_header.s_type == TRANSFER) {
-        TransferOrder *order = (TransferOrder * ) & msg.s_payload;
+        TransferOrder *order = (TransferOrder * ) & received_mes.s_payload;
         // если сообщение на получение денег -- получаем деньги, отправляем сообщение аск
-        // если соощение на требование денег -- отправляем деньгт
+        if (order->s_src != p.id) {
+          // меняем баланс
+          p.balance += order->s_amount;
+
+          // отправляем аск-сообщение
+          Message message;
+
+          MessageHeader header;
+          header.s_local_time = time(NULL);
+          header.s_payload_len = sizeof(TransferOrder);
+          header.s_type = ACK;
+          header.s_magic = MESSAGE_MAGIC;
+          message.s_header = header;
+          memcpy(message.s_payload, order, sizeof(TransferOrder));
+
+          send(&p, 0, &message);
+
+        } else { // если соощение на требование денег -- отправляем деньги
+          // меняем баланс
+          p.balance -= order->s_amount;
+
+          // отправляем деньги
+          Message message;
+
+          MessageHeader header;
+          header.s_local_time = time(NULL);
+          header.s_payload_len = sizeof(TransferOrder);
+          header.s_type = TRANSFER;
+          header.s_magic = MESSAGE_MAGIC;
+          message.s_header = header;
+          memcpy(message.s_payload, order, sizeof(TransferOrder));
+
+          send(&p, order->s_dst, &message);
+        }
       }
     }
   }
