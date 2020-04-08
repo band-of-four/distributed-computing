@@ -8,8 +8,19 @@
 #include "ipc.h"
 #include "common.h"
 #include "process.h"
+#include "banking.h"
 
-int main(int argc, char *argv[]) {
+
+void transfer(void * parent_data, local_id src, local_id dst,
+              balance_t amount)
+{
+    // student, please implement me
+}
+
+int main(int argc, char * argv[])
+{
+    //bank_robbery(parent_data);
+    //print_history(all);
 
   int n = parse_flag(argc, argv);
   int* balance = (int *)malloc(n * sizeof(int));
@@ -24,7 +35,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i <= n; ++i) {
     processes[i].id = i;
     processes[i].parent_pid = parent_pid;
-
+    processes[i].balance = balance[i];
     for (int k = i; k <= 11; ++k) {
       processes[i].channels[k][0] = -1;
       processes[i].channels[k][1] = -1;
@@ -122,4 +133,6 @@ int main(int argc, char *argv[]) {
   fprintf(event_file, log_done_fmt, 0);
 
   fclose(event_file);
+
+    return 0;
 }
