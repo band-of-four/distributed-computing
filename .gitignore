@@ -5,6 +5,9 @@
 !*.tex
 !*.pdf
 !Makefile
+*/bank_robbery.c
+*/banking.h
+*/pa2345.h
 
 # this files is provided by the task                                            
 common.h                                                                        

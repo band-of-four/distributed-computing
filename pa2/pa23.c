@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <sys/wait.h>
 #include "utils.h"
-#include "pa1.h"
 #include "ipc.h"
+#include "pa2345.h"
 #include "common.h"
 #include "process.h"
 #include "banking.h"
@@ -129,8 +129,8 @@ int main(int argc, char * argv[])
   }
   while (wait(NULL) > 0) {}
 
-  printf(log_done_fmt, 0);
-  fprintf(event_file, log_done_fmt, 0);
+  printf(log_done_fmt, 0, 0, 0);
+  fprintf(event_file, log_done_fmt, 0, 0, 0);
 
   fclose(event_file);
 
