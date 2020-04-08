@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <sys/wait.h>
+#include <time.h>
 #include "utils.h"
 #include "ipc.h"
 #include "pa2345.h"
@@ -14,27 +15,27 @@
 void transfer(void * parent_data, local_id src, local_id dst,
               balance_t amount)
 {
-  Process parent = (Process)parent_data;
+  Process *parent = (Process *)parent_data;
   
   // creating message
   Message message;
 
   // Transfer
-  TransferOrder transfer = (TransferOrder)message.s_payload;
-  transfer.s_src = src;
-  transfer.s_dst = dst;
-  transfer.s_amount = amount;
+  TransferOrder *transfer = (TransferOrder *)&message.s_payload;
+  transfer->s_src = src;
+  transfer->s_dst = dst;
+  transfer->s_amount = amount;
   
-  MessageHeader header = (MessageHeader)message.s_header;
-  header.s_local_time = get_physical_time();
-  header.s_payload_len = sizeof(TransferOrder);
-  header.s_type = TRANSFER;
-  header.s_magic = MESSAGE_MAGIC;
+  MessageHeader *header = (MessageHeader *)&message.s_header;
+  header->s_local_time = time(NULL); //get_physical_time();
+  header->s_payload_len = sizeof(TransferOrder);
+  header->s_type = TRANSFER;
+  header->s_magic = MESSAGE_MAGIC;
   // ------------------------
-  send(&processes[0], src, &message);
+  send(parent, src, &message);
 
   Message callback;
-  receive(&processes[0], dst, &callback);
+  receive(parent, dst, &callback);
 }
 
 int main(int argc, char * argv[])
