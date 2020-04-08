@@ -14,7 +14,27 @@
 void transfer(void * parent_data, local_id src, local_id dst,
               balance_t amount)
 {
-    // student, please implement me
+  Process parent = (Process)parent_data;
+  
+  // creating message
+  Message message;
+
+  // Transfer
+  TransferOrder transfer = (TransferOrder)message.s_payload;
+  transfer.s_src = src;
+  transfer.s_dst = dst;
+  transfer.s_amount = amount;
+  
+  MessageHeader header = (MessageHeader)message.s_header;
+  header.s_local_time = get_physical_time();
+  header.s_payload_len = sizeof(TransferOrder);
+  header.s_type = TRANSFER;
+  header.s_magic = MESSAGE_MAGIC;
+  // ------------------------
+  send(&processes[0], src, &message);
+
+  Message callback;
+  receive(&processes[0], dst, &callback);
 }
 
 int main(int argc, char * argv[])
