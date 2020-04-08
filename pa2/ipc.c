@@ -46,6 +46,9 @@ int receive(void *self, local_id from, Message *msg) {
   int header_size = 0;
   while (header_size < sizeof(MessageHeader)) {
     header_size += read(process->channels[from][0], header + header_size, sizeof(MessageHeader)-header_size);
+    if (header_size == 0) {
+      return 1;
+    }
   }
   //printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type, header->s_payload_len);
   char *buffer = (char *) malloc(header->s_payload_len);
