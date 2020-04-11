@@ -9,8 +9,8 @@
 #include "process.h"
 
 int working(Process p, FILE *event_file) {
-  //printf(log_started_fmt, p.id, p.pid, p.parent_pid);
-  //fprintf(event_file, log_started_fmt, p.id, p.pid, p.parent_pid);
+  printf(log_started_fmt, p.id - 1, p.id, p.pid, p.parent_pid, p.balance);
+  fprintf(event_file, log_started_fmt, p.id - 1, p.id, p.pid, p.parent_pid, p.balance);
 
   // creating message
   Message message;

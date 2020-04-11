@@ -56,7 +56,8 @@ int main(int argc, char * argv[])
   for (int i = 0; i <= n; ++i) {
     processes[i].id = i;
     processes[i].parent_pid = parent_pid;
-    processes[i].balance = balance[i];
+    if (i != 0)
+      processes[i].balance = balance[i - 1];
     for (int k = i; k <= 11; ++k) {
       processes[i].channels[k][0] = -1;
       processes[i].channels[k][1] = -1;
