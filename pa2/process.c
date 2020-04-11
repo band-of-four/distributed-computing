@@ -14,7 +14,7 @@ int working(Process p, FILE *event_file) {
 
   // creating message
   Message message;
-  //sprintf(message.s_payload, log_started_fmt, p.id, p.pid, p.parent_pid);
+  sprintf(message.s_payload, log_started_fmt, p.id - 1, p.id, p.pid, p.parent_pid, p.balance);
 
   MessageHeader header;
   header.s_local_time = time(NULL);

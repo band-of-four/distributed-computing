@@ -137,7 +137,7 @@ int main(int argc, char * argv[])
       }
     }
   }
-
+/*
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
@@ -149,11 +149,12 @@ int main(int argc, char * argv[])
     close(processes[0].channels[i][0]);
   }
   while (wait(NULL) > 0) {}
-
+*/
+  bank_robbery(&processes[0], n);
   printf(log_done_fmt, 0, 0, 0);
   fprintf(event_file, log_done_fmt, 0, 0, 0);
 
   fclose(event_file);
 
-    return 0;
+  return 0;
 }
