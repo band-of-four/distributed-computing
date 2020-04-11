@@ -37,7 +37,7 @@ void transfer(void * parent_data, local_id src, local_id dst,
   send(parent, src, &message);
 
   Message callback;
-  printf("Hmm...\n");
+  printf("Hmm...\n");     // wtf
   receive(parent, dst, &callback);
   printf("Parent got a callback from %d.\n", dst);
 }
@@ -128,7 +128,6 @@ int main(int argc, char * argv[])
           }
         }
       }
-      prctl(PR_SET_PDEATHSIG, SIGHUP);
       working(p, event_file);
       return 0;
     }
@@ -152,21 +151,33 @@ int main(int argc, char * argv[])
       }
     }
   }
-*/
+  */
   bank_robbery(&processes[0], n);
+  
+  // sending STOP to all children
+  Message stop;
+  
+  MessageHeader header_stop;
+  header_stop.s_local_time = time(NULL);
+  header_stop.s_payload_len = 0;
+  header_stop.s_type = STOP;
+  header_stop.s_magic = MESSAGE_MAGIC;
+  stop.s_header = header_stop;
+
+  send_multicast(&processes[0], &stop);
   
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
-    while (received_mes.s_header.s_type != DONE)
-    {
+    while (received_mes.s_header.s_type != DONE) {
       receive(&processes[0], i, &received_mes);
     }
     printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
     close(processes[0].channels[i][0]);
   }
+  
   while (wait(NULL) > 0) {}
-
+  
   printf(log_done_fmt, 0, 0, 0);
   fprintf(event_file, log_done_fmt, 0, 0, 0);
 

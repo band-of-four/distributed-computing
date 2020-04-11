@@ -48,7 +48,7 @@ int working(Process p, FILE *event_file) {
       // Если пришло сообщение стоп -- пропускаем
       if (received_mes.s_header.s_type == STOP) {
         //пишем done
-        //sprintf(message.s_payload, log_done_fmt, p.id);
+        sprintf(message.s_payload, log_done_fmt, p.id - 1, p.id, p.balance);
 
         MessageHeader header_done;
         header_done.s_local_time = time(NULL);
@@ -59,12 +59,14 @@ int working(Process p, FILE *event_file) {
 
         send(&p, 0, &message);
 
+        fprintf(event_file, log_done_fmt, p.id - 1, p.id, p.balance);
+        printf(log_done_fmt, p.id - 1, p.id, p.balance);
         // закрываем все пайпы
         for (int j = 0; j < 11; ++j) {
           if (p.channels[i][0] == -1 || p.id == i) continue;
           close(p.channels[j][0]);  // average process do not need to receive anything more from others
         }
-        //fprintf(event_file, log_done_fmt, p.id);
+        return 0;
       };
 
       // если пришло сообщение трансфер
