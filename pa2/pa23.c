@@ -77,6 +77,15 @@ int main(int argc, char * argv[])
         return 1;
       }
 
+      int flags = fcntl(i_to_j[0], F_GETFL, 0);
+      fcntl(i_to_j[0], F_SETFL, flags | O_NONBLOCK);
+      flags = fcntl(i_to_j[1], F_GETFL, 0);
+      fcntl(i_to_j[1], F_SETFL, flags | O_NONBLOCK);
+      flags = fcntl(j_to_i[0], F_GETFL, 0);
+      fcntl(j_to_i[0], F_SETFL, flags | O_NONBLOCK);
+      flags = fcntl(j_to_i[1], F_GETFL, 0);
+      fcntl(j_to_i[1], F_SETFL, flags | O_NONBLOCK);
+
       processes[i].channels[j][0] = j_to_i[0]; // i-th process read from j-th process
       processes[i].channels[j][1] = i_to_j[1]; // i-th process write to j-th process
       processes[j].channels[i][0] = i_to_j[0]; // j-th process read from i-th process
@@ -146,7 +155,7 @@ int main(int argc, char * argv[])
     {
       receive(&processes[0], i, &received_mes);
     }
-    //printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
+    printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
     close(processes[0].channels[i][0]);
   }
   while (wait(NULL) > 0) {}

@@ -74,6 +74,7 @@ int working(Process p, FILE *event_file) {
         if (order->s_src != p.id) {
           // меняем баланс
           p.balance += order->s_amount;
+          printf("Process %d new balance $%d.\n", p.id, p.balance);
 
           // отправляем аск-сообщение
           Message message;
@@ -91,6 +92,7 @@ int working(Process p, FILE *event_file) {
         } else { // если соощение на требование денег -- отправляем деньги
           // меняем баланс
           p.balance -= order->s_amount;
+          printf("Process %d new balance $%d.\n", p.id, p.balance);
 
           // отправляем деньги
           Message message;
