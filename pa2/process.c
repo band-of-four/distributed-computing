@@ -76,7 +76,7 @@ int working(Process p, FILE *event_file) {
         if (order->s_src != p.id) {
           // меняем баланс
           p.balance += order->s_amount;
-          printf("Process %d new balance $%d.\n", p.id, p.balance);
+          printf("Process %d new balance $%d. (+%d)\n", p.id, p.balance, order->s_amount);
 
           // отправляем аск-сообщение
           Message message;
@@ -94,7 +94,7 @@ int working(Process p, FILE *event_file) {
         } else { // если соощение на требование денег -- отправляем деньги
           // меняем баланс
           p.balance -= order->s_amount;
-          printf("Process %d new balance $%d.\n", p.id, p.balance);
+          printf("Process %d new balance $%d. (-%d)\n", p.id, p.balance, order->s_amount);
 
           // отправляем деньги
           Message message;
@@ -106,7 +106,7 @@ int working(Process p, FILE *event_file) {
           header.s_magic = MESSAGE_MAGIC;
           message.s_header = header;
           memcpy(message.s_payload, order, sizeof(TransferOrder));
-
+          printf("TRANSFER SUM = $%d.\n", order->s_amount);
           send(&p, order->s_dst, &message);
         }
       }

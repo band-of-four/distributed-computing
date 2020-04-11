@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <sys/prctl.h>
 #include <signal.h>
+#include <unistd.h>
 #include <time.h>
 #include "utils.h"
 #include "ipc.h"
@@ -163,7 +164,6 @@ int main(int argc, char * argv[])
   header_stop.s_type = STOP;
   header_stop.s_magic = MESSAGE_MAGIC;
   stop.s_header = header_stop;
-
   send_multicast(&processes[0], &stop);
   
   Message received_mes;
