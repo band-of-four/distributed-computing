@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <sys/wait.h>
+#include <sys/prctl.h>
+#include <signal.h>
 #include <time.h>
 #include "utils.h"
 #include "ipc.h"
@@ -35,7 +37,9 @@ void transfer(void * parent_data, local_id src, local_id dst,
   send(parent, src, &message);
 
   Message callback;
+  printf("Hmm...\n");
   receive(parent, dst, &callback);
+  printf("Parent got a callback from %d.\n", dst);
 }
 
 int main(int argc, char * argv[])
@@ -124,11 +128,12 @@ int main(int argc, char * argv[])
           }
         }
       }
+      prctl(PR_SET_PDEATHSIG, SIGHUP);
       working(p, event_file);
       return 0;
     }
   }
-
+/*
   int i = 0;
   for (int j = 0; j <= n; ++j) {
     for (int k = 0; k <= n; ++k) {
@@ -147,7 +152,9 @@ int main(int argc, char * argv[])
       }
     }
   }
-/*
+*/
+  bank_robbery(&processes[0], n);
+  
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
@@ -159,8 +166,7 @@ int main(int argc, char * argv[])
     close(processes[0].channels[i][0]);
   }
   while (wait(NULL) > 0) {}
-*/
-  bank_robbery(&processes[0], n);
+
   printf(log_done_fmt, 0, 0, 0);
   fprintf(event_file, log_done_fmt, 0, 0, 0);
 
