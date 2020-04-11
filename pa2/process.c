@@ -30,7 +30,9 @@ int working(Process p, FILE *event_file) {
   Message received_mes;
   for (int i = 1; i <= 11; ++i) {
     if (p.channels[i][0] == -1 || p.id == i) continue;
-    receive(&p, i, &received_mes);
+    received_mes.s_header.s_type = -1;
+    while (received_mes.s_header.s_type != STARTED)
+      receive(&p, i, &received_mes);
   }
 
 
