@@ -35,7 +35,6 @@ int working(Process p, FILE *event_file) {
       receive(&p, i, &received_mes);
   }
 
-
   // выполняем полезную работу
   while (true) {
     for (int i = 0; i <= 11; ++i) {
@@ -70,7 +69,7 @@ int working(Process p, FILE *event_file) {
 
       // если пришло сообщение трансфер
       if (received_mes.s_header.s_type == TRANSFER) {
-        TransferOrder *order = (TransferOrder * ) & received_mes.s_payload;
+        TransferOrder *order = (TransferOrder * )received_mes.s_payload;
         // если сообщение на получение денег -- получаем деньги, отправляем сообщение аск
         if (order->s_src != p.id) {
           // меняем баланс
