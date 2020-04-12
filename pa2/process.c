@@ -35,6 +35,13 @@ int working(Process p, FILE *event_file) {
       receive(&p, i, &received_mes);
   }
 
+  // Создаем структуру BalanceHistory
+  BalanceHistory balanceHistory;
+  balanceHistory.s_id = p.id;
+  balanceHistory.s_history_len = 0;
+
+  int counter = 0;
+
   // выполняем полезную работу
   while (true) {
     for (int i = 0; i <= 11; ++i) {
@@ -102,7 +109,7 @@ int working(Process p, FILE *event_file) {
 
           send(&p, 0, &message);
 
-          fprintf(logs.eventsLog, log_transfer_in_fmt, get_physical_time(), order->s_dst, order->s_amount, order->s_src);
+          fprintf(event_file, log_transfer_in_fmt, get_physical_time(), order->s_dst, order->s_amount, order->s_src);
         } else { // если соощение на требование денег -- отправляем деньги
           // меняем баланс
           p.balance -= order->s_amount;
@@ -121,8 +128,20 @@ int working(Process p, FILE *event_file) {
           printf("TRANSFER SUM = $%d.\n", order->s_amount);
           send(&p, order->s_dst, &message);
 
-          fprintf(logs.eventsLog, log_transfer_out_fmt, get_physical_time(), order->s_src, order->s_amount, order->s_dst);
+          //логгируем
+          fprintf(event_file, log_transfer_out_fmt, get_physical_time(), order->s_src, order->s_amount, order->s_dst);
         }
+
+        // Добавляем BalanceState
+        BalanceState balanceState;
+        balanceState.s_balance = p.balance;
+        balanceState.s_time = get_physical_time();
+        balanceState.s_balance_pending_in = 0;
+
+        // добавляем стейт в хистори
+        balanceHistory.s_history[counter] = balanceState;
+        counter++;
+
       }
     }
   }
