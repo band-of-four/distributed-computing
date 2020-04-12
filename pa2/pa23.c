@@ -30,7 +30,7 @@ void transfer(void * parent_data, local_id src, local_id dst,
   transfer->s_amount = amount;
   
   MessageHeader *header = (MessageHeader *)&message.s_header;
-  header->s_local_time = time(NULL); //get_physical_time();
+  header->s_local_time = get_physical_time();
   header->s_payload_len = sizeof(TransferOrder);
   header->s_type = TRANSFER;
   header->s_magic = MESSAGE_MAGIC;
@@ -161,7 +161,7 @@ int main(int argc, char * argv[])
   Message stop;
   
   MessageHeader header_stop;
-  header_stop.s_local_time = time(NULL);
+  header_stop.s_local_time = get_physical_time();
   header_stop.s_payload_len = 0;
   header_stop.s_type = STOP;
   header_stop.s_magic = MESSAGE_MAGIC;
@@ -175,7 +175,11 @@ int main(int argc, char * argv[])
       receive(&processes[0], i, &received_mes);
     }
     printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
+    // я пока не уверена, какой именно надо закрыть
+    close(processes[i].channels[0][1]);
     close(processes[i].channels[0][0]);
+    close(processes[0].channels[i][1]);
+    close(processes[0].channels[i][0]);
   }
   
   while (wait(NULL) > 0) {}

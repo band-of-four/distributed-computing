@@ -17,7 +17,7 @@ int working(Process p, FILE *event_file) {
   sprintf(message.s_payload, log_started_fmt, p.id - 1, p.id, p.pid, p.parent_pid, p.balance);
 
   MessageHeader header;
-  header.s_local_time = time(NULL);
+  header.s_local_time = get_physical_time();
   header.s_payload_len = strlen(message.s_payload);
   header.s_type = STARTED;
   header.s_magic = MESSAGE_MAGIC;
@@ -51,7 +51,7 @@ int working(Process p, FILE *event_file) {
         sprintf(message.s_payload, log_done_fmt, p.id - 1, p.id, p.balance);
 
         MessageHeader header_done;
-        header_done.s_local_time = time(NULL);
+        header_done.s_local_time = get_physical_time();
         header_done.s_payload_len = strlen(message.s_payload);
         header_done.s_type = DONE;
         header_done.s_magic = MESSAGE_MAGIC;
@@ -81,7 +81,7 @@ int working(Process p, FILE *event_file) {
           Message message;
 
           MessageHeader header;
-          header.s_local_time = time(NULL);
+          header.s_local_time = get_physical_time();
           header.s_payload_len = sizeof(TransferOrder);
           header.s_type = ACK;
           header.s_magic = MESSAGE_MAGIC;
@@ -99,7 +99,7 @@ int working(Process p, FILE *event_file) {
           Message message;
 
           MessageHeader header;
-          header.s_local_time = time(NULL);
+          header.s_local_time = get_physical_time();
           header.s_payload_len = sizeof(TransferOrder);
           header.s_type = TRANSFER;
           header.s_magic = MESSAGE_MAGIC;
