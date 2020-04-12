@@ -154,7 +154,9 @@ int main(int argc, char * argv[])
   }
   */
   bank_robbery(&processes[0], n);
-  
+
+  sleep(1);
+
   // sending STOP to all children
   Message stop;
   
