@@ -75,7 +75,7 @@ int working(Process p, FILE *event_file) {
         Message balance_history_message;
         MessageHeader balance_history_header;
         balance_history_header.s_local_time = get_physical_time();
-        balance_history_header.s_payload_len = sizeof(balanceHistory);
+        balance_history_header.s_payload_len = balanceHistory.s_history_len* sizeof(BalanceState) + sizeof(balanceHistory.s_id) + sizeof(balanceHistory.s_history_len);
         balance_history_header.s_type = BALANCE_HISTORY;
         balance_history_header.s_magic = MESSAGE_MAGIC;
         balance_history_message.s_header = balance_history_header;
@@ -112,6 +112,18 @@ int working(Process p, FILE *event_file) {
 
           send(&p, 0, &message);
 
+          // Добавляем BalanceState
+          BalanceState balanceState;
+          balanceState.s_balance = p.balance;
+          balanceState.s_time = header.s_local_time;
+          balanceState.s_balance_pending_in = 0;
+
+          // добавляем стейт в хистори
+          balanceHistory.s_history[counter] = balanceState;
+          balanceHistory.s_history_len = counter;//sizeof(BalanceState);
+          counter++;
+
+          // логи
           fprintf(event_file, log_transfer_in_fmt, get_physical_time(), order->s_dst, order->s_amount, order->s_src);
         } else { // если соощение на требование денег -- отправляем деньги
           // меняем баланс
@@ -128,23 +140,24 @@ int working(Process p, FILE *event_file) {
           header.s_magic = MESSAGE_MAGIC;
           message.s_header = header;
           memcpy(message.s_payload, order, sizeof(TransferOrder));
-          printf("TRANSFER SUM = $%d.\n", order->s_amount);
+          printf("TRANSFER SUM = $%d. TIME = %d\n", order->s_amount, header.s_local_time);
           send(&p, order->s_dst, &message);
+
+          // Добавляем BalanceState
+          BalanceState balanceState;
+          balanceState.s_balance = p.balance;
+          balanceState.s_time = header.s_local_time;
+          balanceState.s_balance_pending_in = 0;
+
+          // добавляем стейт в хистори
+          balanceHistory.s_history[counter] = balanceState;
+          balanceHistory.s_history_len = counter;//sizeof(BalanceState);
+          counter++;
 
           //логгируем
           fprintf(event_file, log_transfer_out_fmt, get_physical_time(), order->s_src, order->s_amount, order->s_dst);
         }
 
-        // Добавляем BalanceState
-        BalanceState balanceState;
-        balanceState.s_balance = p.balance;
-        balanceState.s_time = get_physical_time();
-        balanceState.s_balance_pending_in = 0;
-
-        // добавляем стейт в хистори
-        balanceHistory.s_history[counter] = balanceState;
-        balanceHistory.s_history_len += sizeof(balanceState);
-        counter++;
       }
     }
   }

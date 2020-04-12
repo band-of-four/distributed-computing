@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
     }
     BalanceHistory *balanceHistory = (BalanceHistory*) received_mes_hist.s_payload;
     allHistory.s_history[i - 1] = *balanceHistory;
-    allHistory.s_history_len += sizeof(balanceHistory);
+    allHistory.s_history_len++;
     printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
     // я пока не уверена, какой именно надо закрыть
     close(processes[i].channels[0][1]);
