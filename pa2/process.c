@@ -42,9 +42,23 @@ int working(Process p, FILE *event_file) {
 
   int counter = 0;
 
+  // Начальное состояние
+  BalanceState balanceState;
+  balanceState.s_balance = p.balance;
+  balanceState.s_time = 0;
+  printf("START balanceState.balance %d (proc -- %d)\n", balanceState.s_balance, p.id);
+  balanceState.s_balance_pending_in = 0;
+
+  // добавляем стейт в хистори
+  memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
+  balanceHistory.s_history_len = counter + 1;
+  counter++;
+
   // выполняем полезную работу
   while (true) {
     for (int i = 0; i <= 11; ++i) {
+      int  time = 0;
+
       // Если такого канала не существует -- пропускаем
       if (p.channels[i][0] == -1 || p.id == i) continue;
       Message received_mes;
@@ -120,16 +134,7 @@ int working(Process p, FILE *event_file) {
 
           send(&p, 0, &message);
 
-          // Добавляем BalanceState
-          BalanceState balanceState;
-          balanceState.s_balance = p.balance;
-          balanceState.s_time = header.s_local_time;
-          balanceState.s_balance_pending_in = 0;
-
-          // добавляем стейт в хистори
-          memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
-          balanceHistory.s_history_len = counter + 1;
-          counter++;
+          time = header.s_local_time;
 
           // логи
           fprintf(event_file, log_transfer_in_fmt, get_physical_time(), order->s_dst, order->s_amount, order->s_src);
@@ -151,20 +156,28 @@ int working(Process p, FILE *event_file) {
           printf("TRANSFER SUM = $%d. TIME = %d\n", order->s_amount, header.s_local_time);
           send(&p, order->s_dst, &message);
 
-          // Добавляем BalanceState
-          BalanceState balanceState;
-          balanceState.s_balance = p.balance;
-          balanceState.s_time = header.s_local_time;
-          balanceState.s_balance_pending_in = 0;
-
-          // добавляем стейт в хистори
-          memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
-          balanceHistory.s_history_len = counter + 1;
-          counter++;
+          time = header.s_local_time;
 
           //логгируем
           fprintf(event_file, log_transfer_out_fmt, get_physical_time(), order->s_src, order->s_amount, order->s_dst);
         }
+
+        // Добавляем BalanceState
+        BalanceState balanceState;
+        balanceState.s_balance = p.balance;
+        balanceState.s_time = time;
+        balanceState.s_balance_pending_in = 0;
+
+        for (int k = balanceHistory.s_history[counter - 1].s_time; k < time; ++k) {
+          // добавляем стейт в хистори
+          memcpy(&balanceHistory.s_history[counter], &balanceHistory.s_history[counter - 1], sizeof(BalanceState));
+          balanceHistory.s_history[counter].s_time = balanceHistory.s_history[counter - 1].s_time + 1;
+          balanceHistory.s_history_len = counter + 1;
+          counter++;
+        }
+        memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
+        balanceHistory.s_history_len = counter + 1;
+        counter++;
 
       }
     }

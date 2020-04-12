@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
       return 0;
     }
   }
-/*
+
   int i = 0;
   for (int j = 0; j <= n; ++j) {
     for (int k = 0; k <= n; ++k) {
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  */
+
   bank_robbery(&processes[0], n);
 
   sleep(1);
@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
     allHistory.s_history[i - 1] = *balanceHistory;
     for (int j = 0; j < balanceHistory->s_history_len; ++j){
       BalanceState balanceState =  balanceHistory->s_history[j];
-      printf("Proc -- %d, State -- %d, Balance -- %d\n", i, j, balanceState.s_balance);
+      printf("Proc -- %d, State -- %d, Balance -- %d, time = %d\n", i, j, balanceState.s_balance, balanceState.s_time);
     }
     allHistory.s_history_len++;
     printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 
   printf(log_done_fmt, 0, 0, 0);
   fprintf(event_file, log_done_fmt, 0, 0, 0);
-
+  printf("len %d", allHistory.s_history_len);
   print_history(&allHistory);
 
   fclose(event_file);
