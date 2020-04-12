@@ -72,14 +72,22 @@ int working(Process p, FILE *event_file) {
 
         // отправляем BALANCE_HISTORY
 
+        int len = balanceHistory.s_history_len* sizeof(BalanceState) + sizeof(balanceHistory.s_id) + sizeof(balanceHistory.s_history_len);
         Message balance_history_message;
         MessageHeader balance_history_header;
         balance_history_header.s_local_time = get_physical_time();
-        balance_history_header.s_payload_len = balanceHistory.s_history_len* sizeof(BalanceState) + sizeof(balanceHistory.s_id) + sizeof(balanceHistory.s_history_len);
+        balance_history_header.s_payload_len = len;
         balance_history_header.s_type = BALANCE_HISTORY;
         balance_history_header.s_magic = MESSAGE_MAGIC;
         balance_history_message.s_header = balance_history_header;
-        memcpy(&balance_history_message.s_payload, &balanceHistory, sizeof(balanceHistory));
+        memcpy(&balance_history_message.s_payload, &balanceHistory, len);
+
+        printf("==========>\n");
+        for (int j = 0; j < balanceHistory.s_history_len; ++j){
+          BalanceState balanceState =  balanceHistory.s_history[j];
+          printf("OT Proc -- %d, State -- %d, Balance -- %d\n", p.id, j, balanceState.s_balance);
+        }
+        printf("<==========\n");
 
         send(&p, 0, &balance_history_message);
 
@@ -119,8 +127,8 @@ int working(Process p, FILE *event_file) {
           balanceState.s_balance_pending_in = 0;
 
           // добавляем стейт в хистори
-          balanceHistory.s_history[counter] = balanceState;
-          balanceHistory.s_history_len = counter;//sizeof(BalanceState);
+          memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
+          balanceHistory.s_history_len = counter + 1;
           counter++;
 
           // логи
@@ -150,8 +158,8 @@ int working(Process p, FILE *event_file) {
           balanceState.s_balance_pending_in = 0;
 
           // добавляем стейт в хистори
-          balanceHistory.s_history[counter] = balanceState;
-          balanceHistory.s_history_len = counter;//sizeof(BalanceState);
+          memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
+          balanceHistory.s_history_len = counter + 1;
           counter++;
 
           //логгируем

@@ -187,6 +187,10 @@ int main(int argc, char *argv[]) {
     }
     BalanceHistory *balanceHistory = (BalanceHistory*) received_mes_hist.s_payload;
     allHistory.s_history[i - 1] = *balanceHistory;
+    for (int j = 0; j < balanceHistory->s_history_len; ++j){
+      BalanceState balanceState =  balanceHistory->s_history[j];
+      printf("Proc -- %d, State -- %d, Balance -- %d\n", i, j, balanceState.s_balance);
+    }
     allHistory.s_history_len++;
     printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
     // я пока не уверена, какой именно надо закрыть
