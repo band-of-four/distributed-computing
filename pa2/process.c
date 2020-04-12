@@ -48,19 +48,31 @@ int working(Process p, FILE *event_file) {
       // Если пришло сообщение стоп -- отправляем DONE и выходим
       if (received_mes.s_header.s_type == STOP) {
         //пишем done
-        sprintf(message.s_payload, log_done_fmt, p.id - 1, p.id, p.balance);
 
+        Message message_done;
         MessageHeader header_done;
         header_done.s_local_time = get_physical_time();
         header_done.s_payload_len = strlen(message.s_payload);
         header_done.s_type = DONE;
         header_done.s_magic = MESSAGE_MAGIC;
-        message.s_header = header_done;
+        message_done.s_header = header_done;;
+        sprintf(message_done.s_payload, log_done_fmt, p.id - 1, p.id, p.balance);
 
-        send(&p, 0, &message);
+        send(&p, 0, &message_done);
 
         fprintf(event_file, log_done_fmt, p.id - 1, p.id, p.balance);
         printf(log_done_fmt, p.id - 1, p.id, p.balance);
+
+        // отправляем BALANCE_HISTORY
+
+        Message balance_history_message;
+        MessageHeader balance_history_header;
+        balance_history_header.s_local_time = get_physical_time();
+        balance_history_header.s_payload_len = 0; // TODO исправь меня
+        balance_history_header.s_type = BALANCE_HISTORY;
+        balance_history_header.s_magic = MESSAGE_MAGIC;
+        balance_history_message.s_header = balance_history_header;
+
         // закрываем все пайпы
         for (int j = 1; j < 11; ++j) {
           close(p.channels[j][0]);  // average process do not need to receive anything more from others
