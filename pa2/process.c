@@ -75,10 +75,13 @@ int working(Process p, FILE *event_file) {
         Message balance_history_message;
         MessageHeader balance_history_header;
         balance_history_header.s_local_time = get_physical_time();
-        balance_history_header.s_payload_len = 0; // TODO исправь меня
+        balance_history_header.s_payload_len = sizeof(balanceHistory);
         balance_history_header.s_type = BALANCE_HISTORY;
         balance_history_header.s_magic = MESSAGE_MAGIC;
         balance_history_message.s_header = balance_history_header;
+        memcpy(&balance_history_message.s_payload, &balanceHistory, sizeof(balanceHistory));
+
+        send(&p, 0, &balance_history_message);
 
         // закрываем все пайпы
         for (int j = 1; j < 11; ++j) {
