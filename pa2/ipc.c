@@ -24,7 +24,7 @@ int send(void *self, local_id dst, const Message *msg) {
     }
 //    exit(1);
   }
-  // printf("%d send to %d into %d. Len: %d, msg: %s", process->id, dst, process->channels[dst][1], msg->s_header.s_payload_len, msg->s_payload);
+//   printf("%d send to %d into %d. Type: %d Len: %d, msg: %s\n", process->id, dst, process->channels[dst][1], msg->s_header.s_type, msg->s_header.s_payload_len, msg->s_payload);
   // TODO: log events
   return 0;
 }
@@ -46,20 +46,25 @@ int receive(void *self, local_id from, Message *msg) {
   int header_size = 0;
   while (header_size < sizeof(MessageHeader)) {
     header_size += read(process->channels[from][0], header + header_size, sizeof(MessageHeader)-header_size);
-    if (header_size == 0) {
+//    printf("SIZE: %d\n", header_size);
+    if (header_size <= 0) {
       return 1;
     }
   }
-  //printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type, header->s_payload_len);
+//  printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type, header->s_payload_len);
   char *buffer = (char *) malloc(header->s_payload_len);
   int message_size = 0;
   while (message_size < header->s_payload_len){
-    message_size += read(process->channels[from][0], buffer, header->s_payload_len-message_size); // hangs here;
+    int readed = read(process->channels[from][0], buffer, header->s_payload_len-message_size);
+    if(readed>0){
+      message_size += readed;
+    }
+     // hangs here;
   }
   msg->s_header = *header;
   memcpy(&(msg->s_header), header, sizeof(MessageHeader));
   memcpy(msg->s_payload, buffer, header->s_payload_len);
-  //printf("%d from %d Message: %s\n",  process->id, from, buffer);
+//  printf("%d from %d Message: %s\n",  process->id, from, buffer);
   // TODO: log events
   return 0;
 }

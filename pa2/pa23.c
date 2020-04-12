@@ -6,6 +6,8 @@
 #include <sys/prctl.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/prctl.h>
+#include <signal.h>
 #include <time.h>
 #include "utils.h"
 #include "ipc.h"
@@ -38,7 +40,6 @@ void transfer(void * parent_data, local_id src, local_id dst,
   send(parent, src, &message);
 
   Message callback;
-  printf("Hmm...\n");     // wtf
   receive(parent, dst, &callback);
   printf("Parent got a callback from %d.\n", dst);
 }
@@ -110,6 +111,7 @@ int main(int argc, char * argv[])
 
   for (int i = 1; i <= n; ++i) {
     if (fork() == 0) {
+      prctl(PR_SET_PDEATHSIG, SIGHUP);
       processes[i].pid = getpid();
       Process p = processes[i];
       for (int j = 0; j <= n; ++j) {
