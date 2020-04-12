@@ -143,8 +143,8 @@ int working(Process p, FILE *event_file) {
 
         // добавляем стейт в хистори
         balanceHistory.s_history[counter] = balanceState;
+        balanceHistory.s_history_len += sizeof(balanceState);
         counter++;
-
       }
     }
   }

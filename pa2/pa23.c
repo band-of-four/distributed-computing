@@ -17,21 +17,20 @@
 #include "banking.h"
 
 
-void transfer(void * parent_data, local_id src, local_id dst,
-              balance_t amount)
-{
-  Process *parent = (Process *)parent_data;
-  
+void transfer(void *parent_data, local_id src, local_id dst,
+              balance_t amount) {
+  Process *parent = (Process *) parent_data;
+
   // creating message
   Message message;
 
   // Transfer
-  TransferOrder *transfer = (TransferOrder *)&message.s_payload;
+  TransferOrder *transfer = (TransferOrder *) &message.s_payload;
   transfer->s_src = src;
   transfer->s_dst = dst;
   transfer->s_amount = amount;
-  
-  MessageHeader *header = (MessageHeader *)&message.s_header;
+
+  MessageHeader *header = (MessageHeader * ) & message.s_header;
   header->s_local_time = get_physical_time();
   header->s_payload_len = sizeof(TransferOrder);
   header->s_type = TRANSFER;
@@ -44,13 +43,12 @@ void transfer(void * parent_data, local_id src, local_id dst,
   printf("Parent got a callback from %d.\n", dst);
 }
 
-int main(int argc, char * argv[])
-{
-    //bank_robbery(parent_data);
-    //print_history(all);
+int main(int argc, char *argv[]) {
+  //bank_robbery(parent_data);
+  //print_history(all);
 
   int n = parse_flag(argc, argv);
-  int* balance = (int *)malloc(n * sizeof(int));
+  int *balance = (int *) malloc(n * sizeof(int));
   get_balance(argc, argv, n, balance);
 
   const int parent_pid = getpid();
@@ -161,7 +159,7 @@ int main(int argc, char * argv[])
 
   // sending STOP to all children
   Message stop;
-  
+
   MessageHeader header_stop;
   header_stop.s_local_time = get_physical_time();
   header_stop.s_payload_len = 0;
@@ -169,23 +167,37 @@ int main(int argc, char * argv[])
   header_stop.s_magic = MESSAGE_MAGIC;
   stop.s_header = header_stop;
   send_multicast(&processes[0], &stop);
-  
+
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes);
     while (received_mes.s_header.s_type != DONE) {
       receive(&processes[0], i, &received_mes);
     }
-    printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
+    printf("Parent received DONE: %d from %d\n", received_mes.s_header.s_type, i); // debug print
+  }
+
+  Message received_mes_hist;
+  AllHistory allHistory;
+  allHistory.s_history_len = 0;
+  for (int i = 1; i <= n; ++i) {
+    receive(&processes[0], i, &received_mes_hist);
+    while (received_mes_hist.s_header.s_type != BALANCE_HISTORY) {
+      receive(&processes[0], i, &received_mes_hist);
+    }
+    BalanceHistory *balanceHistory = (BalanceHistory*) received_mes_hist.s_payload;
+    allHistory.s_history[i - 1] = *balanceHistory;
+    allHistory.s_history_len += sizeof(balanceHistory);
+    printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
     // я пока не уверена, какой именно надо закрыть
     close(processes[i].channels[0][1]);
     close(processes[i].channels[0][0]);
     close(processes[0].channels[i][1]);
     close(processes[0].channels[i][0]);
   }
-  
+
   while (wait(NULL) > 0) {}
-  
+
   printf(log_done_fmt, 0, 0, 0);
   fprintf(event_file, log_done_fmt, 0, 0, 0);
 
