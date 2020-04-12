@@ -201,6 +201,8 @@ int main(int argc, char *argv[]) {
   printf(log_done_fmt, 0, 0, 0);
   fprintf(event_file, log_done_fmt, 0, 0, 0);
 
+  print_history(&allHistory);
+
   fclose(event_file);
 
   return 0;
