@@ -102,6 +102,7 @@ int working(Process p, FILE *event_file) {
 
           send(&p, 0, &message);
 
+          fprintf(logs.eventsLog, log_transfer_in_fmt, get_physical_time(), order->s_dst, order->s_amount, order->s_src);
         } else { // если соощение на требование денег -- отправляем деньги
           // меняем баланс
           p.balance -= order->s_amount;
@@ -119,6 +120,8 @@ int working(Process p, FILE *event_file) {
           memcpy(message.s_payload, order, sizeof(TransferOrder));
           printf("TRANSFER SUM = $%d.\n", order->s_amount);
           send(&p, order->s_dst, &message);
+
+          fprintf(logs.eventsLog, log_transfer_out_fmt, get_physical_time(), order->s_src, order->s_amount, order->s_dst);
         }
       }
     }
