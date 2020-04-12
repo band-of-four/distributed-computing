@@ -42,10 +42,10 @@ int working(Process p, FILE *event_file) {
       if (p.channels[i][0] == -1 || p.id == i) continue;
       Message received_mes;
 
-      // Если ничего не прочитали -- отправляем DONE и выходим
+      // Если ничего не прочитали -- пропускаем
       if (receive(&p, i, &received_mes) == 1) continue;
 
-      // Если пришло сообщение стоп -- пропускаем
+      // Если пришло сообщение стоп -- отправляем DONE и выходим
       if (received_mes.s_header.s_type == STOP) {
         //пишем done
         sprintf(message.s_payload, log_done_fmt, p.id - 1, p.id, p.balance);
@@ -62,8 +62,7 @@ int working(Process p, FILE *event_file) {
         fprintf(event_file, log_done_fmt, p.id - 1, p.id, p.balance);
         printf(log_done_fmt, p.id - 1, p.id, p.balance);
         // закрываем все пайпы
-        for (int j = 0; j < 11; ++j) {
-          if (p.channels[i][0] == -1 || p.id == i) continue;
+        for (int j = 1; j < 11; ++j) {
           close(p.channels[j][0]);  // average process do not need to receive anything more from others
         }
         return 0;

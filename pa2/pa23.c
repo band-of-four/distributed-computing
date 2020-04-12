@@ -173,7 +173,7 @@ int main(int argc, char * argv[])
       receive(&processes[0], i, &received_mes);
     }
     printf("Parent received: %d from %d\n", received_mes.s_header.s_type, i); // debug print
-    close(processes[0].channels[i][0]);
+    close(processes[i].channels[0][0]);
   }
   
   while (wait(NULL) > 0) {}
