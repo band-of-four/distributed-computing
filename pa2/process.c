@@ -65,7 +65,7 @@ int working(Process p, FILE *event_file) {
         } else { // если соощение на требование денег -- отправляем деньги
           p.balance -= order->s_amount;               /* меняем баланс */
           //printf("Process %d new balance $%d. (-%d)\n", p.id, p.balance, order->s_amount);
-          time = send_transfer(&p, order);
+          time = send_transfer(&p, order);            /* отправляем деньги */
           fprintf(event_file, log_transfer_out_fmt, time, order->s_src, order->s_amount, order->s_dst); /* логи */
         }
 
