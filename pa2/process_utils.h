@@ -3,7 +3,7 @@
 #include "process.h"
 
 /* send STARTED to all other processes */
-void started_broadcast(Process* p);
+void broadcast_started(Process* p);
 
 /* ждем, пока все потоки напишут STARTED */
-void get_all_started(Process* p);
+void await_started(Process* p);

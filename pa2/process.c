@@ -13,8 +13,8 @@ int working(Process p, FILE *event_file) {
   fprintf(event_file, log_started_fmt, p.id - 1, p.id, p.pid, p.parent_pid, p.balance);
 
 
-  started_broadcast(&p);        // send STARTED to all other processes
-  get_all_started(&p);          // ждем, пока все потоки напишут STARTED
+  broadcast_started(&p);        // send STARTED to all other processes
+  await_started(&p);          // ждем, пока все потоки напишут STARTED
 
   // Создаем структуру BalanceHistory
   BalanceHistory balanceHistory;
