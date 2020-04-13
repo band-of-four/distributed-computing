@@ -23,3 +23,9 @@ void report_balance_history(Process* p, BalanceHistory* balanceHistory);
 
 /* закрываем все пайпы */
 void close_pipes(Process* p);
+
+/* отправляем аск-сообщение */
+timestamp_t report_ack(Process* p, TransferOrder* order);
+
+/* отправляем деньги */
+timestamp_t send_transfer(Process* p, TransferOrder* order);

@@ -2,7 +2,6 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>
-//#include "banking.h"
 #include "pa2345.h"
 #include "ipc.h"
 #include "common.h"
@@ -60,49 +59,14 @@ int working(Process p, FILE *event_file) {
         TransferOrder *order = (TransferOrder * )received_mes.s_payload;
         // если сообщение на получение денег -- получаем деньги, отправляем сообщение аск
         if (order->s_src != p.id) {
-          // меняем баланс
-          p.balance += order->s_amount;
-          printf("Process %d new balance $%d. (+%d)\n", p.id, p.balance, order->s_amount);
-
-          // отправляем аск-сообщение
-          Message message;
-
-          MessageHeader header;
-          header.s_local_time = get_physical_time();
-          header.s_payload_len = sizeof(TransferOrder);
-          header.s_type = ACK;
-          header.s_magic = MESSAGE_MAGIC;
-          message.s_header = header;
-          memcpy(message.s_payload, order, sizeof(TransferOrder));
-
-          send(&p, 0, &message);
-
-          time = header.s_local_time;
-
-          // логи
-          fprintf(event_file, log_transfer_in_fmt, get_physical_time(), order->s_dst, order->s_amount, order->s_src);
+          p.balance += order->s_amount;               /* меняем баланс */
+          time = report_ack(&p, order);               /* отправляем аск-сообщение */
+          fprintf(event_file, log_transfer_in_fmt, time, order->s_dst, order->s_amount, order->s_src); /* логи */
         } else { // если соощение на требование денег -- отправляем деньги
-          // меняем баланс
-          p.balance -= order->s_amount;
-          printf("Process %d new balance $%d. (-%d)\n", p.id, p.balance, order->s_amount);
-
-          // отправляем деньги
-          Message message;
-
-          MessageHeader header;
-          header.s_local_time = get_physical_time();
-          header.s_payload_len = sizeof(TransferOrder);
-          header.s_type = TRANSFER;
-          header.s_magic = MESSAGE_MAGIC;
-          message.s_header = header;
-          memcpy(message.s_payload, order, sizeof(TransferOrder));
-          printf("TRANSFER SUM = $%d. TIME = %d\n", order->s_amount, header.s_local_time);
-          send(&p, order->s_dst, &message);
-
-          time = header.s_local_time;
-
-          //логгируем
-          fprintf(event_file, log_transfer_out_fmt, get_physical_time(), order->s_src, order->s_amount, order->s_dst);
+          p.balance -= order->s_amount;               /* меняем баланс */
+          //printf("Process %d new balance $%d. (-%d)\n", p.id, p.balance, order->s_amount);
+          time = send_transfer(&p, order);
+          fprintf(event_file, log_transfer_out_fmt, time, order->s_src, order->s_amount, order->s_dst); /* логи */
         }
 
         // Добавляем BalanceState
@@ -121,11 +85,8 @@ int working(Process p, FILE *event_file) {
         memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
         balanceHistory.s_history_len = counter + 1;
         counter++;
-
       }
     }
   }
-
-
   return 0;
 }

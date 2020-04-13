@@ -89,3 +89,38 @@ void close_pipes(Process* p) {
   for (int j = 1; j < 11; ++j)
     close(p->channels[j][0]);
 }
+
+/* отправляем аск-сообщение */
+timestamp_t report_ack(Process* p, TransferOrder* order) {
+  printf("Process %d new balance $%d. (+%d)\n", p->id, p->balance, order->s_amount);
+  Message message;
+
+  MessageHeader header;
+  header.s_local_time = get_physical_time();
+  header.s_payload_len = sizeof(TransferOrder);
+  header.s_type = ACK;
+  header.s_magic = MESSAGE_MAGIC;
+  message.s_header = header;
+  memcpy(message.s_payload, order, sizeof(TransferOrder));
+
+  send(p, 0, &message);
+
+  return header.s_local_time;
+}
+
+/* отправляем деньги */
+timestamp_t send_transfer(Process* p, TransferOrder* order) {
+  Message message;
+
+  MessageHeader header;
+  header.s_local_time = get_physical_time();
+  header.s_payload_len = sizeof(TransferOrder);
+  header.s_type = TRANSFER;
+  header.s_magic = MESSAGE_MAGIC;
+  message.s_header = header;
+  memcpy(message.s_payload, order, sizeof(TransferOrder));
+  //printf("TRANSFER SUM = $%d. TIME = %d\n", order->s_amount, header.s_local_time);
+  send(p, order->s_dst, &message);
+
+  return header.s_local_time;
+}
