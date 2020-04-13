@@ -2,24 +2,22 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>
-#include "banking.h"
+//#include "banking.h"
 #include "pa2345.h"
 #include "ipc.h"
 #include "common.h"
 #include "process_utils.h"
 
 int working(Process p, FILE *event_file) {
-  printf(log_started_fmt, p.id - 1, p.id, p.pid, p.parent_pid, p.balance);
-  fprintf(event_file, log_started_fmt, p.id - 1, p.id, p.pid, p.parent_pid, p.balance);
-
-
+  log_started(&p, event_file);  // logging STARTED to a console and event file
   broadcast_started(&p);        // send STARTED to all other processes
-  await_started(&p);          // ждем, пока все потоки напишут STARTED
+  await_started(&p);            // ждем, пока все потоки напишут STARTED
 
   // Создаем структуру BalanceHistory
   BalanceHistory balanceHistory;
   balanceHistory.s_id = p.id;
   balanceHistory.s_history_len = 0;
+  // --------------------------------
 
   int counter = 0;
 
@@ -27,13 +25,14 @@ int working(Process p, FILE *event_file) {
   BalanceState balanceState;
   balanceState.s_balance = p.balance;
   balanceState.s_time = 0;
-  printf("START balanceState.balance %d (proc -- %d)\n", balanceState.s_balance, p.id);
+  //printf("START balanceState.balance %d (proc -- %d)\n", balanceState.s_balance, p.id);
   balanceState.s_balance_pending_in = 0;
 
   // добавляем стейт в хистори
   memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
   balanceHistory.s_history_len = counter + 1;
   counter++;
+  // TODO: move to a process_utils
 
   // выполняем полезную работу
   while (true) {
@@ -49,47 +48,10 @@ int working(Process p, FILE *event_file) {
 
       // Если пришло сообщение стоп -- отправляем DONE и выходим
       if (received_mes.s_header.s_type == STOP) {
-        //пишем done
-
-        Message message_done;
-        MessageHeader header_done;
-        sprintf(message_done.s_payload, log_done_fmt, p.id - 1, p.id, p.balance);
-        header_done.s_local_time = get_physical_time();
-        header_done.s_payload_len = strlen(message_done.s_payload);
-        header_done.s_type = DONE;
-        header_done.s_magic = MESSAGE_MAGIC;
-        message_done.s_header = header_done;;
-
-        send(&p, 0, &message_done);
-
-        fprintf(event_file, log_done_fmt, p.id - 1, p.id, p.balance);
-        printf(log_done_fmt, p.id - 1, p.id, p.balance);
-
-        // отправляем BALANCE_HISTORY
-
-        int len = balanceHistory.s_history_len* sizeof(BalanceState) + sizeof(balanceHistory.s_id) + sizeof(balanceHistory.s_history_len);
-        Message balance_history_message;
-        MessageHeader balance_history_header;
-        balance_history_header.s_local_time = get_physical_time();
-        balance_history_header.s_payload_len = len;
-        balance_history_header.s_type = BALANCE_HISTORY;
-        balance_history_header.s_magic = MESSAGE_MAGIC;
-        balance_history_message.s_header = balance_history_header;
-        memcpy(&balance_history_message.s_payload, &balanceHistory, len);
-
-        printf("==========>\n");
-        for (int j = 0; j < balanceHistory.s_history_len; ++j){
-          BalanceState balanceState =  balanceHistory.s_history[j];
-          printf("OT Proc -- %d, State -- %d, Balance -- %d\n", p.id, j, balanceState.s_balance);
-        }
-        printf("<==========\n");
-
-        send(&p, 0, &balance_history_message);
-
-        // закрываем все пайпы
-        for (int j = 1; j < 11; ++j) {
-          close(p.channels[j][0]);  // average process do not need to receive anything more from others
-        }
+        report_done(&p);                              /* пишем done */
+        log_done(&p, event_file);                     /* logging DONE to a console and event file */
+        report_balance_history(&p, &balanceHistory);  /* отправляем BALANCE_HISTORY */
+        close_pipes(&p);                              /* закрываем все пайпы */
         return 0;
       };
 
