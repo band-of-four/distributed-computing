@@ -1,2 +1,2 @@
 pa2:
-	clang -std=c99 -Wall -pedantic *.c -Llib64 -lruntime
+	clang -std=c99 -Wall -g -pedantic *.c -Llib64 -lruntime

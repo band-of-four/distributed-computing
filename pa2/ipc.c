@@ -31,7 +31,7 @@ int send(void *self, local_id dst, const Message *msg) {
 
 int send_multicast(void *self, const Message *msg) {
   Process *process = (Process *) self;
-  for (int i = 1; i <= 11; ++i) {
+  for (int i = 0; i <= 11; ++i) {
     if (process->channels[i][0] != -1 && i != process->id) {
       send(process, i, msg);
     }
