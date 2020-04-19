@@ -60,6 +60,15 @@ void report_done(Process* p) {
   send(p, 0, &message_done);
 }
 
+void report_balance_history_debug_print(Process* p, BalanceHistory* balanceHistory) {
+  printf("==========>\n");
+  for (int j = 0; j < balanceHistory->s_history_len; ++j){
+    BalanceState balanceState =  balanceHistory->s_history[j];
+    printf("OT Proc -- %d, State -- %d, Balance -- %d\n", p->id, j, balanceState.s_balance);
+  }
+  printf("<==========\n");
+}
+
 /* отправляем BALANCE_HISTORY */
 void report_balance_history(Process* p, BalanceHistory* balanceHistory) {
   int len = balanceHistory->s_history_len* sizeof(BalanceState) + sizeof(balanceHistory->s_id) + sizeof(balanceHistory->s_history_len);
@@ -71,17 +80,8 @@ void report_balance_history(Process* p, BalanceHistory* balanceHistory) {
   balance_history_header.s_magic = MESSAGE_MAGIC;
   balance_history_message.s_header = balance_history_header;
   memcpy(&balance_history_message.s_payload, balanceHistory, len);
-  //report_balance_history_debug_print(p, balanceHistory);
+//  report_balance_history_debug_print(p, balanceHistory);
   send(p, 0, &balance_history_message);
-}
-
-void report_balance_history_debug_print(Process* p, BalanceHistory* balanceHistory) {
-  printf("==========>\n");
-  for (int j = 0; j < balanceHistory->s_history_len; ++j){
-    BalanceState balanceState =  balanceHistory->s_history[j];
-    printf("OT Proc -- %d, State -- %d, Balance -- %d\n", p->id, j, balanceState.s_balance);
-  }
-  printf("<==========\n");
 }
 
 /* закрываем все пайпы */

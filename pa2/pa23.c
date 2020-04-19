@@ -40,7 +40,7 @@ void transfer(void *parent_data, local_id src, local_id dst,
   send(parent, src, &message);
 
   Message callback;
-  receive(parent, dst, &callback);
+  while (receive(parent, dst, &callback)>0);
   printf("Parent got a callback from %d.\n", dst);
 }
 
@@ -154,6 +154,15 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  Message received_mess;
+  for (int i = 1; i <= n; ++i) {
+    receive(&processes[0], i, &received_mess);
+    while (received_mess.s_header.s_type != STARTED) {
+      receive(&processes[0], i, &received_mess);
+    }
+    printf("Parent received STARTED: %d from %d\n", received_mess.s_header.s_type, i); // debug print
+  }
+
   bank_robbery(&processes[0], n);
 
   sleep(1);
@@ -189,15 +198,17 @@ int main(int argc, char *argv[]) {
     }
     BalanceHistory *balanceHistory = (BalanceHistory*) received_mes_hist.s_payload;
     allHistory.s_history[i - 1] = *balanceHistory;
-    for (int j = 0; j < balanceHistory->s_history_len; ++j){
-      BalanceState balanceState =  balanceHistory->s_history[j];
-      printf("Proc -- %d, State -- %d, Balance -- %d, time = %d\n", i, j, balanceState.s_balance, balanceState.s_time);
+    for (int j = 0; j < allHistory.s_history[i - 1].s_history_len; ++j){
+      BalanceState balanceState =  allHistory.s_history[i - 1].s_history[j];
+      printf("Rec -- %d, Proc -- %d, State -- %d, Balance -- %d, time = %d\n",i-1, i, j, balanceState.s_balance, balanceState.s_time);
       if (balanceState.s_time > max_time){
         max_time = balanceState.s_time;
       }
     }
     allHistory.s_history_len++;
     printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
+    print_history(&allHistory);
+
     // я пока не уверена, какой именно надо закрыть
     close(processes[i].channels[0][1]);
     close(processes[i].channels[0][0]);
@@ -207,13 +218,14 @@ int main(int argc, char *argv[]) {
 
   // Синхронизация стейтов по max_time
   for (int i = 0; i < allHistory.s_history_len; ++i) {
-    printf(" --- %d -- %hd\n", i, allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time);
+    printf(" --- %d -- %hd\n", i + 1, allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time);
     if (allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time != max_time) {
       for (int k = allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time; k < max_time; ++k) {
         // добавляем стейт в хистори
         memcpy(&allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len], &allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1], sizeof(BalanceState));
         allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len].s_time++;
-        allHistory.s_history[i].s_history_len = allHistory.s_history[i].s_history_len + 1;
+        printf("proc %d state %d new time %hd\n", i + 1, allHistory.s_history[i].s_history_len, allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len].s_time );
+        allHistory.s_history[i].s_history_len++;
       }
     }
   }
