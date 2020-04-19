@@ -6,6 +6,7 @@
 #include <sys/prctl.h>
 #include <signal.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/prctl.h>
 #include <signal.h>
 #include <time.h>
@@ -180,6 +181,7 @@ int main(int argc, char *argv[]) {
   Message received_mes_hist;
   AllHistory allHistory;
   allHistory.s_history_len = 0;
+  time_t max_time = 0;
   for (int i = 1; i <= n; ++i) {
     receive(&processes[0], i, &received_mes_hist);
     while (received_mes_hist.s_header.s_type != BALANCE_HISTORY) {
@@ -190,6 +192,9 @@ int main(int argc, char *argv[]) {
     for (int j = 0; j < balanceHistory->s_history_len; ++j){
       BalanceState balanceState =  balanceHistory->s_history[j];
       printf("Proc -- %d, State -- %d, Balance -- %d, time = %d\n", i, j, balanceState.s_balance, balanceState.s_time);
+      if (balanceState.s_time > max_time){
+        max_time = balanceState.s_time;
+      }
     }
     allHistory.s_history_len++;
     printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
@@ -198,6 +203,19 @@ int main(int argc, char *argv[]) {
     close(processes[i].channels[0][0]);
     close(processes[0].channels[i][1]);
     close(processes[0].channels[i][0]);
+  }
+
+  // Синхронизация стейтов по max_time
+  for (int i = 0; i < allHistory.s_history_len; ++i) {
+    printf(" --- %d -- %hd\n", i, allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time);
+    if (allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time != max_time) {
+      for (int k = allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time; k < max_time; ++k) {
+        // добавляем стейт в хистори
+        memcpy(&allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len], &allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1], sizeof(BalanceState));
+        allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len].s_time++;
+        allHistory.s_history[i].s_history_len = allHistory.s_history[i].s_history_len + 1;
+      }
+    }
   }
 
   while (wait(NULL) > 0) {}
