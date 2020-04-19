@@ -200,14 +200,15 @@ int main(int argc, char *argv[]) {
     for (int j = 0; j < allHistory.s_history[i - 1].s_history_len; ++j){
       BalanceState balanceState;
       memcpy(&balanceState, &allHistory.s_history[i - 1].s_history[j], sizeof(BalanceState));
-      printf("Rec -- %d, Proc -- %d, State -- %d, Balance -- %d, time = %d\n",i-1, i, j, allHistory.s_history[i - 1].s_history[j].s_balance, allHistory.s_history[i - 1].s_history[j].s_time);
+      //printf("Rec -- %d, Proc -- %d, State -- %d, Balance -- %d, time = %d\n",i-1, i, j, allHistory.s_history[i - 1].s_history[j].s_balance, allHistory.s_history[i - 1].s_history[j].s_time);
       if (balanceState.s_time > max_time){
         max_time = balanceState.s_time;
       }
     }
+    sleep(1);
     allHistory.s_history_len++;
-    printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
-    print_history(&allHistory);
+    //printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
+    //print_history(&allHistory);
 
     // я пока не уверена, какой именно надо закрыть
     close(processes[i].channels[0][1]);
@@ -232,7 +233,7 @@ int main(int argc, char *argv[]) {
 
   printf(log_done_fmt, 0, 0, 0);
   fprintf(event_file, log_done_fmt, 0, 0, 0);
-  printf("len %d", allHistory.s_history_len);
+  //printf("len %d", allHistory.s_history_len);
   print_history(&allHistory);
 
   fclose(event_file);
