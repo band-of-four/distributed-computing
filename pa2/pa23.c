@@ -196,11 +196,11 @@ int main(int argc, char *argv[]) {
     while (received_mes_hist.s_header.s_type != BALANCE_HISTORY) {
       receive(&processes[0], i, &received_mes_hist);
     }
-    BalanceHistory *balanceHistory = (BalanceHistory*) received_mes_hist.s_payload;
-    allHistory.s_history[i - 1] = *balanceHistory;
+    memcpy(&allHistory.s_history[i - 1], &received_mes_hist.s_payload, sizeof(BalanceHistory));
     for (int j = 0; j < allHistory.s_history[i - 1].s_history_len; ++j){
-      BalanceState balanceState =  allHistory.s_history[i - 1].s_history[j];
-      printf("Rec -- %d, Proc -- %d, State -- %d, Balance -- %d, time = %d\n",i-1, i, j, balanceState.s_balance, balanceState.s_time);
+      BalanceState balanceState;
+      memcpy(&balanceState, &allHistory.s_history[i - 1].s_history[j], sizeof(BalanceState));
+      printf("Rec -- %d, Proc -- %d, State -- %d, Balance -- %d, time = %d\n",i-1, i, j, allHistory.s_history[i - 1].s_history[j].s_balance, allHistory.s_history[i - 1].s_history[j].s_time);
       if (balanceState.s_time > max_time){
         max_time = balanceState.s_time;
       }
@@ -218,13 +218,11 @@ int main(int argc, char *argv[]) {
 
   // Синхронизация стейтов по max_time
   for (int i = 0; i < allHistory.s_history_len; ++i) {
-    printf(" --- %d -- %hd\n", i + 1, allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time);
     if (allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time != max_time) {
       for (int k = allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1].s_time; k < max_time; ++k) {
         // добавляем стейт в хистори
         memcpy(&allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len], &allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len - 1], sizeof(BalanceState));
         allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len].s_time++;
-        printf("proc %d state %d new time %hd\n", i + 1, allHistory.s_history[i].s_history_len, allHistory.s_history[i].s_history[allHistory.s_history[i].s_history_len].s_time );
         allHistory.s_history[i].s_history_len++;
       }
     }
