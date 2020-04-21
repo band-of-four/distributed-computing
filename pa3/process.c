@@ -65,7 +65,7 @@ int working(Process p, FILE *event_file) {
         // если сообщение на получение денег -- получаем деньги, отправляем сообщение аск
         if (order->s_src != p.id) {
           p.balance += order->s_amount;               /* меняем баланс */
-          time = report_ack(&p, order);               /* отправляем аск-сообщение */
+          time = report_ack(&p, order)-1;               /* отправляем аск-сообщение */
           fprintf(event_file, log_transfer_in_fmt, time, order->s_dst, order->s_amount, order->s_src); /* логи */
           printf(log_transfer_in_fmt, time, order->s_dst, order->s_amount, order->s_src);
           balanceState.s_balance_pending_in = 0;
