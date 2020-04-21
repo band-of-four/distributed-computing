@@ -70,6 +70,7 @@ int receive(void *self, local_id from, Message *msg) {
   }
 //  printf("%d from %d Message: %s\n",  process->id, from, buffer);
   // TODO: log events
+  local_time++;
   return 0;
 }
 

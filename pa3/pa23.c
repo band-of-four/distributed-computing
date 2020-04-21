@@ -173,6 +173,7 @@ int main(int argc, char *argv[]) {
   // sending STOP to all children
   Message stop;
 
+  local_time++;
   MessageHeader header_stop;
   header_stop.s_local_time = get_lamport_time();
   header_stop.s_payload_len = 0;
