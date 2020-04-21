@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
 
   Message received_mess;
   for (int i = 1; i <= n; ++i) {
-    receive(&processes[0], i, &received_mess);
+    while(receive(&processes[0], i, &received_mess)>0);
     while (received_mess.s_header.s_type != STARTED) {
       receive(&processes[0], i, &received_mess);
     }
@@ -187,6 +187,7 @@ int main(int argc, char *argv[]) {
     printf("Parent received DONE: %d from %d\n", received_mes.s_header.s_type, i); // debug print
   }
 
+  sleep(1);
   Message received_mes_hist;
   AllHistory allHistory;
   allHistory.s_history_len = 0;
@@ -205,7 +206,6 @@ int main(int argc, char *argv[]) {
         max_time = balanceState.s_time;
       }
     }
-    sleep(1);
     allHistory.s_history_len++;
     //printf("Parent received BALANCE_HISTORY: %d from %d\n", received_mes_hist.s_header.s_type, i); // debug print
     //print_history(&allHistory);

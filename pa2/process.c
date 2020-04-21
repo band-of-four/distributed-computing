@@ -62,10 +62,10 @@ int working(Process p, FILE *event_file) {
           p.balance += order->s_amount;               /* меняем баланс */
           time = report_ack(&p, order);               /* отправляем аск-сообщение */
           fprintf(event_file, log_transfer_in_fmt, time, order->s_dst, order->s_amount, order->s_src); /* логи */
-//          printf(log_transfer_in_fmt, time, order->s_dst, order->s_amount, order->s_src);
+          printf(log_transfer_in_fmt, time, order->s_dst, order->s_amount, order->s_src);
         } else { // если соощение на требование денег -- отправляем деньги
           p.balance -= order->s_amount;               /* меняем баланс */
-          //printf("Process %d new balance $%d. (-%d)\n", p.id, p.balance, order->s_amount);
+          printf("Process %d new balance $%d. (-%d)\n", p.id, p.balance, order->s_amount);
           time = send_transfer(&p, order);            /* отправляем деньги */
           fprintf(event_file, log_transfer_out_fmt, time, order->s_src, order->s_amount, order->s_dst); /* логи */
 //          printf(log_transfer_out_fmt, time, order->s_src, order->s_amount, order->s_dst);
@@ -81,11 +81,11 @@ int working(Process p, FILE *event_file) {
           // добавляем стейт в хистори
           memcpy(&balanceHistory.s_history[counter], &balanceHistory.s_history[counter - 1], sizeof(BalanceState));
           balanceHistory.s_history[counter].s_time = balanceHistory.s_history[counter - 1].s_time + 1;
-//          printf("%d COPY to history state %d with time %d\n", p.id, counter, balanceHistory.s_history[counter].s_time);
+          printf("%d COPY to history state %d with time %d\n", p.id, counter, balanceHistory.s_history[counter].s_time);
           balanceHistory.s_history_len = counter + 1;
           counter++;
         }
-//        printf("%d add to history state %d with time %d\n", p.id, counter, balanceState.s_time);
+        printf("%d add to history state %d with time %d, balance = %d\n", p.id, counter, balanceState.s_time, p.balance);
         memcpy(&balanceHistory.s_history[counter], &balanceState, sizeof(BalanceState));
         balanceHistory.s_history_len = counter + 1;
         counter++;
