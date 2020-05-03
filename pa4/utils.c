@@ -33,16 +33,10 @@ int parse_flag(int argc, char *argv[]) {
         mutexl = true;
         break;
       default:
-        printf("Sorry :(");
+        printf("Sorry :(\n");
         exit(-1);
     }
   }
   return n;
 }
 
-bool get_balance(int argc, char *argv[], int n, int *balance) {
-  for (int i = argc - n; i < argc; ++i) {
-    parse_int(argv[i], &balance[i - (argc - n)]);
-  }
-  return true;
-}

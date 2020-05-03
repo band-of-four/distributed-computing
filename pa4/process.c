@@ -16,25 +16,11 @@ int working(Process p, FILE *event_file) {
   broadcast_started(&p);        // send STARTED to all other processes
   await_started(&p);            // ждем, пока все потоки напишут STARTED
 
-  // выполняем полезную работу
-  while (true) {
-    for (int i = 0; i <= 11; ++i) {
-      // Если такого канала не существует -- пропускаем
-      if (p.channels[i][0] == -1 || p.id == i) continue;
-      Message received_mes;
+  // полезная работа
 
-      // Если ничего не прочитали -- пропускаем
-      if (receive(&p, i, &received_mes) == 1) continue;
-
-      // Если пришло сообщение стоп -- отправляем DONE и выходим
-      if (received_mes.s_header.s_type == STOP) {
-        report_done(&p);                              /* пишем done */
-        log_done(&p, event_file);                     /* logging DONE to a console and event file */
-        close_pipes(&p);                              /* закрываем все пайпы */
-        return 0;
-      };
-
-    }
-  }
+  // Отправляем сообщение DONE
+  report_done(&p);                              /* пишем done */
+  log_done(&p, event_file);                     /* logging DONE to a console and event file */
+  close_pipes(&p);                              /* закрываем все пайпы */
   return 0;
 }

@@ -25,8 +25,6 @@ void transfer(void *parent_data, local_id src, local_id dst,
 int main(int argc, char *argv[]) {
 
   int n = parse_flag(argc, argv);
-  int *balance = (int *) malloc(n * sizeof(int));
-  get_balance(argc, argv, n, balance);
 
   const int parent_pid = getpid();
   FILE *event_file = fopen(events_log, "a");
@@ -37,8 +35,6 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i <= n; ++i) {
     processes[i].id = i;
     processes[i].parent_pid = parent_pid;
-    if (i != 0)
-      processes[i].balance = balance[i - 1];
     for (int k = i; k <= 11; ++k) {
       processes[i].channels[k][0] = -1;
       processes[i].channels[k][1] = -1;

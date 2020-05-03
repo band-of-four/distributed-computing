@@ -11,20 +11,20 @@
 
 /* logging STARTED to a console and event file */
 void log_started(Process* p, FILE* event_file) {
-  printf(log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, p->balance);
-  fprintf(event_file, log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, p->balance);
+  printf(log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, 0);
+  fprintf(event_file, log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, 0);
 }
 
 /* logging DONE to a console and event file */
 void log_done(Process* p, FILE* event_file) {
-  printf(log_done_fmt, p->id - 1, p->id, p->balance);
-  fprintf(event_file, log_done_fmt, p->id - 1, p->id, p->balance);
+  printf(log_done_fmt, p->id - 1, p->id, 0);
+  fprintf(event_file, log_done_fmt, p->id - 1, p->id, 0);
 }
 
 /* send STARTED to all other processes */
 void broadcast_started(Process* p) {
   Message message;
-  sprintf(message.s_payload, log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, p->balance);
+  sprintf(message.s_payload, log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, 0);
   local_time++;
   // ------------------------
   MessageHeader header;
@@ -52,7 +52,7 @@ void await_started(Process* p) {
 void report_done(Process* p) {
   Message message_done;
   MessageHeader header_done;
-  sprintf(message_done.s_payload, log_done_fmt, p->id - 1, p->id, p->balance);
+  sprintf(message_done.s_payload, log_done_fmt, p->id - 1, p->id, 0);
   local_time++;
   header_done.s_local_time = get_lamport_time();
   header_done.s_payload_len = strlen(message_done.s_payload);
