@@ -20,7 +20,7 @@ int working(Process p, FILE *event_file) {
 
   // полезная работа
 
-  if (mutexl) {
+  if (!mutexl) {
     for (int i = 1; i <= p.id; ++i) {
       printf(log_loop_operation_fmt, p.id, i, p.id);
       char* buff = (char *) malloc(strlen(log_loop_operation_fmt) + sizeof(int) * 3);
