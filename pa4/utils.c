@@ -16,10 +16,10 @@ bool parse_int(const char *str, int *var) {
 const struct option long_options = {"mutexl", no_argument, 0, 'm'};
 
 int option_index;
-bool mutexl = false;
 
 int parse_flag(int argc, char *argv[]) {
   int opt, n;
+  mutexl = false;
   while ((opt = getopt_long(argc, argv, "p:", &long_options, &option_index)) != -1) {
     switch (opt) {
       case 'p':
