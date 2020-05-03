@@ -19,7 +19,7 @@ int option_index;
 
 int parse_flag(int argc, char *argv[]) {
   int opt, n;
-  mutexl = false;
+  mutexl = true;
   while ((opt = getopt_long(argc, argv, "p:", &long_options, &option_index)) != -1) {
     switch (opt) {
       case 'p':
@@ -30,7 +30,7 @@ int parse_flag(int argc, char *argv[]) {
         break;
       case 'm':
         printf("Used mutexl\n");
-        mutexl = true;
+        mutexl = false;
         break;
       default:
         printf("Sorry :(\n");
