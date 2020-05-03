@@ -32,6 +32,9 @@ int parse_flag(int argc, char *argv[]) {
         printf("Used mutexl\n");
         mutexl = true;
         break;
+      default:
+        printf("Sorry :(");
+        exit(-1);
     }
   }
   return n;
