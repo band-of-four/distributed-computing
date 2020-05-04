@@ -131,7 +131,7 @@ void process_mutex(Process *p) {
   Message received_mes;
   /* пока не получим все request и reply обрабатываем их */
   while (received_req != n - 1 && received_rep != n - 1) {
-    for (int i = 0; i <= 11; ++i) {
+    for (int i = 1; i <= 11; ++i) {
       received_mes.s_header.s_type = -1;
       if (p->channels[i][0] != -1 && i != p->id)
         receive(&p, i, &received_mes);
@@ -191,11 +191,13 @@ void process_mutex(Process *p) {
         /* вычисляем новый самый приоритетный процесс, */
         /* если это текущий - выходим и делаем дела */
         for (int j = 0; j < capacity; ++j) {
-          if (queue[j].id != -1)
+          if (queue[j].id != -1) {
             current_p = queue[j].id;
-          if (current_p == p->id)
-            return;
+            break;
+          }
         }
+        if (current_p == p->id)
+            return;
       }
     }
   }
