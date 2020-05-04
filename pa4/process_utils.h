@@ -21,9 +21,5 @@ void report_done(Process* p);
 /* закрываем все пайпы */
 void close_pipes(Process* p);
 
-/* send CS_REQUEST to all other processes */
-void broadcast_cs_request(Process* p);
-
 void process_mutex(Process* p);
 
-void broadcast_cs_release(Process* p);

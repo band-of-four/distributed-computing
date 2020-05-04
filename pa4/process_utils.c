@@ -86,7 +86,8 @@ void close_pipes(Process *p) {
 }
 
 /* send CS_REQUEST to all other processes */
-void broadcast_cs_request(Process *p) {
+int request_cs(const void * self) {
+  Process *p = (Process *) self;
   Message message;
   local_time++;
   // ------------------------
@@ -98,6 +99,7 @@ void broadcast_cs_request(Process *p) {
   message.s_header = header;
   // ------------------------
   send_multicast(p, &message);
+  return 0;
 }
 
 
@@ -117,7 +119,7 @@ void process_mutex(Process *p) {
   queue[0].time = t;
   capacity = 1;
   /* отправляем запрос на занятие критической области */
-  broadcast_cs_request(p);
+  request_cs(p);
 
   /* выясняем сколько процессов (может можно как-то лучше) */
   int n = 0;
@@ -192,7 +194,7 @@ void process_mutex(Process *p) {
         sprintf(buff, log_loop_operation_fmt, p->id, iter++, iter_max);
         print(buff);
         received_rep = 0;
-        broadcast_cs_release(p);
+        release_cs(p);
         if (iter == iter_max) {
           // Отправляем сообщение DONE
           report_done(p);                              /* пишем done */
@@ -203,7 +205,8 @@ void process_mutex(Process *p) {
 }
 
 /* send CS_RELEASE to all other processes */
-void broadcast_cs_release(Process *p) {
+int release_cs(const void * self){
+  Process *p = (Process *) self;
   Message message;
   local_time++;
   // ------------------------
@@ -215,4 +218,5 @@ void broadcast_cs_release(Process *p) {
   message.s_header = header;
   // ------------------------
   send_multicast(p, &message);
+  return 0;
 }
