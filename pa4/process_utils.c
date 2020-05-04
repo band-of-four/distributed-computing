@@ -11,15 +11,14 @@
 #include "banking.h"
 #include "process_utils.h"
 
-typedef struct
-{
+typedef struct {
   int id;
   timestamp_t time;
 } QueueItem;
 
 int compare(const void *p, const void *q) {
-  QueueItem* a1 = (QueueItem*)p;
-  QueueItem* a2 = (QueueItem*)q;
+  QueueItem *a1 = (QueueItem *) p;
+  QueueItem *a2 = (QueueItem *) q;
   if (a1->time == a2->time)
     return a1->id < a2->id;
   else
@@ -27,19 +26,19 @@ int compare(const void *p, const void *q) {
 }
 
 /* logging STARTED to a console and event file */
-void log_started(Process* p, FILE* event_file) {
+void log_started(Process *p, FILE *event_file) {
   printf(log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, 0);
   fprintf(event_file, log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, 0);
 }
 
 /* logging DONE to a console and event file */
-void log_done(Process* p, FILE* event_file) {
+void log_done(Process *p, FILE *event_file) {
   printf(log_done_fmt, p->id - 1, p->id, 0);
   fprintf(event_file, log_done_fmt, p->id - 1, p->id, 0);
 }
 
 /* send STARTED to all other processes */
-void broadcast_started(Process* p) {
+void broadcast_started(Process *p) {
   Message message;
   sprintf(message.s_payload, log_started_fmt, p->id - 1, p->id, p->pid, p->parent_pid, 0);
   local_time++;
@@ -55,7 +54,7 @@ void broadcast_started(Process* p) {
 }
 
 /* ждем, пока все потоки напишут STARTED */
-void await_started(Process* p) {
+void await_started(Process *p) {
   Message received_mes;
   for (int i = 1; i <= 11; ++i) {
     if (p->channels[i][0] == -1 || p->id == i) continue;
@@ -66,7 +65,7 @@ void await_started(Process* p) {
 }
 
 /* пишем done */
-void report_done(Process* p) {
+void report_done(Process *p) {
   Message message_done;
   MessageHeader header_done;
   sprintf(message_done.s_payload, log_done_fmt, p->id - 1, p->id, 0);
@@ -81,13 +80,13 @@ void report_done(Process* p) {
 }
 
 /* закрываем все пайпы */
-void close_pipes(Process* p) {
+void close_pipes(Process *p) {
   for (int j = 1; j < 11; ++j)
     close(p->channels[j][0]);
 }
 
 /* send CS_REQUEST to all other processes */
-void broadcast_cs_request(Process* p) {
+void broadcast_cs_request(Process *p) {
   Message message;
   local_time++;
   // ------------------------
@@ -107,6 +106,9 @@ void broadcast_cs_request(Process* p) {
 // его очередь входить в
 // критическую область
 void process_mutex(Process *p) {
+  int iter_max = p->id * 5;
+  int iter = 0;
+  int done_counter = 0;
   QueueItem queue[12];
   int capacity = 0;
   /* заносим этот процесс в очередь */
@@ -128,16 +130,23 @@ void process_mutex(Process *p) {
 
   int received_rep = 0;
   Message received_mes;
-  /* пока не получим все reply обрабатываем их */
-  while (received_rep != n - 1) {
+
+  for (;;) {
     for (int i = 1; i <= 11; ++i) {
+
+      /* если не существует такого процесса -- пропускаем */
+      /* ждем сообщение */
       received_mes.s_header.s_type = -1;
       if (p->channels[i][0] == -1 || i == p->id || receive(&p, i, &received_mes) > 0) continue;
 
+      /* проверяем тип сообщения */
+
+      /* если пришел reply -- увеличиваем счетчик reply'ев */
       if (received_mes.s_header.s_type == CS_REPLY) {
         received_rep++;
       }
-      /* если получили request отправляем свои данные */
+
+      /* если получили request отправляем свои данные и записываем в очередь */
       if (received_mes.s_header.s_type == CS_REQUEST) {
         Message message;
         local_time++;
@@ -151,31 +160,12 @@ void process_mutex(Process *p) {
         // ------------------------
         send(&p, i, &message);
         /* заносим в очередь */
-        queue[i].id = i;
-        queue[i].time = received_mes.s_header.s_local_time;
+        queue[capacity].id = i;
+        queue[capacity++].time = received_mes.s_header.s_local_time;
+        qsort((void *) queue, capacity, sizeof(QueueItem), compare);
       }
-    }
-  }
-  /* сортируем очередь по приоритету <временная метка, номер потока> */
-  qsort((void*)queue, capacity, sizeof(QueueItem), compare);
 
-  /* если текущий процесс является самым приоритетным */
-  /* выходим из функции, позволяя ему делать полезную работу */
-  if (queue[0].id == p->id)
-    return;
-
-  /* иначе ожидаем сообщений об освобождении от остальных */
-  /* процессов, проверяя не стал ли текущий самым приоритетным */
-  /* после удаления отправившего сообщение процесса */
-  int current_p = queue[0].id;
-
-  for (;;) {
-    for (int i = 0; i <= 11; ++i) {
-      received_mes.s_header.s_type = -1;
-      if (p->channels[i][0] != -1 && i != p->id)
-        while(receive(&p, i, &received_mes) > 0);
-      else continue;
-      /* пришло сообщение об отпускании критической зоны */
+      /* пришло сообщение об отпускании критической зоны, выселяем процесс из очереди */
       if (received_mes.s_header.s_type == CS_RELEASE) {
         /* выселяем из очереди */
         for (int j = 0; j < capacity; ++j) {
@@ -184,24 +174,36 @@ void process_mutex(Process *p) {
             /* приоритетного */
             queue[j].id = -1;
           }
+          /* сортируем очередь по приоритету <временная метка, номер потока> */
+          qsort((void *) queue, capacity, sizeof(QueueItem), compare);
         }
-        /* вычисляем новый самый приоритетный процесс, */
-        /* если это текущий - выходим и делаем дела */
-        for (int j = 0; j < capacity; ++j) {
-          if (queue[j].id != -1) {
-            current_p = queue[j].id;
-            break;
-          }
+      }
+      /* пришло сообщение об окончании работы -- считаем количество работающих потоков */
+      if (received_mes.s_header.s_type == DONE) {
+        done_counter++;
+        if (done_counter == n) {
+          return;
         }
-        if (current_p == p->id)
-            return;
+      }
+
+      /* если мы первые в очереди -- делаем работу и отправляем релиз */
+      if (iter != iter_max && queue[0].id == p->id && received_rep == n - 1) {
+        char *buff = (char *) malloc(strlen(log_loop_operation_fmt) + sizeof(int) * 3);
+        sprintf(buff, log_loop_operation_fmt, p->id, iter++, iter_max);
+        print(buff);
+        received_rep = 0;
+        broadcast_cs_release(p);
+        if (iter == iter_max) {
+          // Отправляем сообщение DONE
+          report_done(p);                              /* пишем done */
+        }
       }
     }
   }
 }
 
 /* send CS_RELEASE to all other processes */
-void broadcast_cs_release(Process* p) {
+void broadcast_cs_release(Process *p) {
   Message message;
   local_time++;
   // ------------------------
