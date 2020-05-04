@@ -27,7 +27,6 @@ int working(Process p, FILE *event_file) {
     process_mutex(&p);
 
   for (int i = 1; i <= iter; ++i) {
-    printf(log_loop_operation_fmt, p.id, i, iter);
     char* buff = (char *) malloc(strlen(log_loop_operation_fmt) + sizeof(int) * 3);
     sprintf (buff, log_loop_operation_fmt, p.id,i, iter);
     print(buff);

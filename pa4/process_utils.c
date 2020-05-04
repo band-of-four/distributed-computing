@@ -134,7 +134,7 @@ void process_mutex(Process *p) {
     for (int i = 1; i <= 11; ++i) {
       received_mes.s_header.s_type = -1;
       if (p->channels[i][0] != -1 && i != p->id)
-        receive(&p, i, &received_mes);
+        while (receive(&p, i, &received_mes)>0);
       else continue;
       /* если получили reply заносим в очередь процесс-отправитель */
       if (received_mes.s_header.s_type == CS_REPLY) {
@@ -176,7 +176,7 @@ void process_mutex(Process *p) {
     for (int i = 0; i <= 11; ++i) {
       received_mes.s_header.s_type = -1;
       if (p->channels[i][0] != -1 && i != p->id)
-        receive(&p, i, &received_mes);
+        while(receive(&p, i, &received_mes) > 0);
       else continue;
       /* пришло сообщение об отпускании критической зоны */
       if (received_mes.s_header.s_type == CS_RELEASE) {
