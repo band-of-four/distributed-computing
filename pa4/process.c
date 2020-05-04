@@ -40,6 +40,6 @@ int working(Process p, FILE *event_file) {
   // Отправляем сообщение DONE
   report_done(&p);                              /* пишем done */
   log_done(&p, event_file);                     /* logging DONE to a console and event file */
-  //close_pipes(&p);                              /* закрываем все пайпы */
+  close_pipes(&p);                              /* закрываем все пайпы */
   return 0;
 }

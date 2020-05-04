@@ -126,25 +126,19 @@ void process_mutex(Process *p) {
     }
   }
 
-  int received_req = 0;
   int received_rep = 0;
   Message received_mes;
-  /* пока не получим все request и reply обрабатываем их */
-  while (received_req != n - 1 && received_rep != n - 1) {
+  /* пока не получим все reply обрабатываем их */
+  while (received_rep != n - 1) {
     for (int i = 1; i <= 11; ++i) {
       received_mes.s_header.s_type = -1;
-      if (p->channels[i][0] != -1 && i != p->id)
-        while (receive(&p, i, &received_mes)>0);
-      else continue;
-      /* если получили reply заносим в очередь процесс-отправитель */
+      if (p->channels[i][0] == -1 || i == p->id || receive(&p, i, &received_mes) > 0) continue;
+
       if (received_mes.s_header.s_type == CS_REPLY) {
-        queue[capacity].id = i;
-        queue[capacity].time = received_mes.s_header.s_local_time;
-        capacity++;
+        received_rep++;
       }
       /* если получили request отправляем свои данные */
       if (received_mes.s_header.s_type == CS_REQUEST) {
-        received_req++;
         Message message;
         local_time++;
         // ------------------------
@@ -156,6 +150,9 @@ void process_mutex(Process *p) {
         message.s_header = header;
         // ------------------------
         send(&p, i, &message);
+        /* заносим в очередь */
+        queue[i].id = i;
+        queue[i].time = received_mes.s_header.s_local_time;
       }
     }
   }
