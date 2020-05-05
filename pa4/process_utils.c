@@ -114,7 +114,7 @@ int request_cs(const void * self) {
 // критическую область
 void process_mutex(Process *p) {
   int iter_max = p->id * 5;
-  int iter = 0;
+  int iter = 1;
   int done_counter = 0;
   QueueItem queue[12];
   int capacity = 0;
@@ -195,17 +195,18 @@ void process_mutex(Process *p) {
       }
 
       /* если мы первые в очереди -- делаем работу и отправляем релиз */
-      if (iter != iter_max && queue[0].id == p->id && received_rep == n - 1) {
+      if (iter <= iter_max && queue[0].id == p->id && received_rep == n - 1) {
         char *buff = (char *) malloc(strlen(log_loop_operation_fmt) + sizeof(int) * 3);
         sprintf(buff, log_loop_operation_fmt, p->id, iter++, iter_max);
         print(buff);
         received_rep = 0;
         release_cs(p);
-        if (iter == iter_max) {
+        if (iter > iter_max) {
           // Отправляем сообщение DONE
           report_done(p);                              /* пишем done */
         } else {
           request_cs(p);
+          received_rep = 0;
         }
       }
     }
