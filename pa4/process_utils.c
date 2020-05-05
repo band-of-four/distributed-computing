@@ -204,6 +204,8 @@ void process_mutex(Process *p) {
         if (iter == iter_max) {
           // Отправляем сообщение DONE
           report_done(p);                              /* пишем done */
+        } else {
+          request_cs(p);
         }
       }
     }
