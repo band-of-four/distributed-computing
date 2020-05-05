@@ -189,9 +189,11 @@ void process_mutex(Process *p) {
       /* пришло сообщение об окончании работы -- считаем количество работающих потоков */
       if (received_mes.s_header.s_type == DONE) {
         done_counter++;
-        if (done_counter == n) {
-          return;
-        }
+      }
+
+      /* если все завершили работу -- выходим */
+      if (done_counter == n) {
+        return;
       }
 
       /* если мы первые в очереди -- делаем работу и отправляем релиз */
@@ -204,6 +206,8 @@ void process_mutex(Process *p) {
         if (iter > iter_max) {
           // Отправляем сообщение DONE
           report_done(p);                              /* пишем done */
+          done_counter++;
+          printf("Proc %d завершил работу.\n", p->id);
         } else {
           request_cs(p);
           received_rep = 0;

@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
   // получение done
   Message received_mes;
   for (int i = 1; i <= n; ++i) {
-    while (receive(&processes[0], i, &received_mes)>0);
+    received_mes.s_header.s_type = -1;
     while (received_mes.s_header.s_type != DONE) {
       receive(&processes[0], i, &received_mes);
     }
