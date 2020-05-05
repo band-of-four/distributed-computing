@@ -24,7 +24,7 @@ int send(void *self, local_id dst, const Message *msg) {
     }
 //    exit(1);
   }
-  printf("%d send to %d into %d. Type: %d Len: %d, msg: %s\n", process->id, dst, process->channels[dst][1], msg->s_header.s_type, msg->s_header.s_payload_len, msg->s_payload);
+  //printf("%d send to %d into %d. Type: %d Len: %d, msg: %s\n", process->id, dst, process->channels[dst][1], msg->s_header.s_type, msg->s_header.s_payload_len, msg->s_payload);
   return 0;
 }
 
@@ -55,8 +55,8 @@ int receive(void *self, local_id from, Message *msg) {
   }
   memcpy(&(msg->s_header), header, sizeof(MessageHeader));
 
-  printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type,
-         header->s_payload_len);
+  //printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type,
+  //       header->s_payload_len);
   if (header->s_payload_len > 0) {
     char *buffer = (char *) malloc(header->s_payload_len);
     int message_size = 0;

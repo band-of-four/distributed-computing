@@ -177,13 +177,12 @@ void process_mutex(Process *p) {
         /* выселяем из очереди */
         for (int j = 0; j < capacity; ++j) {
           if (queue[j].id == i) {
-            /* процессы с id = 100 не учитываются при подсчете самого */
-            /* приоритетного */
-            queue[j].id = 100;
-            queue[j].time = 1000;
+            for (int k = j; k < n; k++)
+              queue[k] = queue[k + 1];        // циклический сдвиг вправо начиная с удаляемого
+            break;
           }
           /* сортируем очередь по приоритету <временная метка, номер потока> */
-          qsort((void *) queue, capacity, sizeof(QueueItem), compare);
+          //qsort((void *) queue, capacity, sizeof(QueueItem), compare);
           capacity--;
         }
       }
