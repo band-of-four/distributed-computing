@@ -89,16 +89,21 @@ void close_pipes(Process *p) {
 int request_cs(const void * self) {
   Process *p = (Process *) self;
   Message message;
+  sprintf(message.s_payload, "f");
   local_time++;
   // ------------------------
   MessageHeader header;
   header.s_local_time = get_lamport_time();
-  header.s_payload_len = 0;
+  header.s_payload_len = 1;
   header.s_type = CS_REQUEST;
   header.s_magic = MESSAGE_MAGIC;
   message.s_header = header;
   // ------------------------
-  send_multicast(p, &message);
+  for (int i = 1; i <= 11; ++i) {
+    if (p->channels[i][0] != -1 && i != p->id) {
+      send(p, i, &message);
+    }
+  }
   return 0;
 }
 
@@ -124,7 +129,7 @@ void process_mutex(Process *p) {
   /* выясняем сколько процессов (может можно как-то лучше) */
   int n = 0;
   for (int i = 0; i <= 11; ++i) {
-    if (p->channels[i][0] == -1) {
+    if (p->channels[i][0] == -1 && i != p->id) {
       n = i - 1;
       break;
     }
@@ -139,7 +144,7 @@ void process_mutex(Process *p) {
       /* если не существует такого процесса -- пропускаем */
       /* ждем сообщение */
       received_mes.s_header.s_type = -1;
-      if (p->channels[i][0] == -1 || i == p->id || receive(&p, i, &received_mes) > 0) continue;
+      if (p->channels[i][0] == -1 || i == p->id || receive(p, i, &received_mes) > 0) continue;
 
       /* проверяем тип сообщения */
 
@@ -160,7 +165,7 @@ void process_mutex(Process *p) {
         header.s_magic = MESSAGE_MAGIC;
         message.s_header = header;
         // ------------------------
-        send(&p, i, &message);
+        send(p, i, &message);
         /* заносим в очередь */
         queue[capacity].id = i;
         queue[capacity++].time = received_mes.s_header.s_local_time;
@@ -217,6 +222,10 @@ int release_cs(const void * self){
   header.s_magic = MESSAGE_MAGIC;
   message.s_header = header;
   // ------------------------
-  send_multicast(p, &message);
+  for (int i = 1; i <= 11; ++i) {
+    if (p->channels[i][0] != -1 && i != p->id) {
+      send(p, i, &message);
+    }
+  }
   return 0;
 }

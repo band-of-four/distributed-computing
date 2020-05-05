@@ -8,7 +8,7 @@
 int send(void *self, local_id dst, const Message *msg) {
   Process *process = (Process *) self;
     if(fcntl(process->channels[dst][1], F_GETFD) == -1 || errno == EBADF){
-        printf("Descriptor: %d is closed \n", process->channels[dst][1]);
+      printf("Descriptor: %d is closed, dst = %d, src = %d\n.", process->channels[dst][1], dst, process->id);
     }
   if (write(process->channels[dst][1], &msg->s_header, sizeof(MessageHeader)) < sizeof(MessageHeader)) {
     printf("Error while sending header: from = %d, to = %d (descriptor = %d)\n", process->id, dst, process->channels[dst][1]);
@@ -20,12 +20,11 @@ int send(void *self, local_id dst, const Message *msg) {
     printf("Expected: %d symbols, actual: %d symbols.\n", msg->s_header.s_payload_len, w);
     printf("Description: %s.\n", strerror(errno));
     if(fcntl(process->channels[dst][1], F_GETFD) == -1 || errno == EBADF){
-        printf("Descriptor: %d is closed \n", process->channels[dst][1]);
+        printf("Descriptor: %d is closed, dst = %d, src = %d\n.", process->channels[dst][1], dst, process->id);
     }
 //    exit(1);
   }
-//   printf("%d send to %d into %d. Type: %d Len: %d, msg: %s\n", process->id, dst, process->channels[dst][1], msg->s_header.s_type, msg->s_header.s_payload_len, msg->s_payload);
-  // TODO: log events
+  printf("%d send to %d into %d. Type: %d Len: %d, msg: %s\n", process->id, dst, process->channels[dst][1], msg->s_header.s_type, msg->s_header.s_payload_len, msg->s_payload);
   return 0;
 }
 
@@ -44,16 +43,20 @@ int receive(void *self, local_id from, Message *msg) {
   Process *process = (Process *) self;
   MessageHeader *header = (MessageHeader *) malloc(sizeof(header));
   int header_size = 0;
+  
   while (header_size < sizeof(MessageHeader)) {
     header_size += read(process->channels[from][0], header + header_size, sizeof(MessageHeader) - header_size);
     if (header_size <= 0) {
       return 1;
     }
   }
+  if(fcntl(process->channels[from][0], F_GETFD) == -1 || errno == EBADF){
+    printf("!!!Descriptor: %d is closed, dst = %d, src = %d\n.", process->channels[from][0], from, process->id);
+  }
   memcpy(&(msg->s_header), header, sizeof(MessageHeader));
 
-//  printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type,
-//         header->s_payload_len);
+  printf("Id: %d, from: %d pipe: %d, type: %d, len %d\n", process->id, from, process->channels[from][0], header->s_type,
+         header->s_payload_len);
   if (header->s_payload_len > 0) {
     char *buffer = (char *) malloc(header->s_payload_len);
     int message_size = 0;
@@ -63,7 +66,6 @@ int receive(void *self, local_id from, Message *msg) {
       if (readed > 0) {
         message_size += readed;
       }
-      // hangs here;
     }
     memcpy(msg->s_payload, buffer, header->s_payload_len);
   }
@@ -71,7 +73,6 @@ int receive(void *self, local_id from, Message *msg) {
   if (local_time < header->s_local_time) {
     local_time = header->s_local_time;
   }
-  // TODO: log events
   local_time++;
   return 0;
 }
