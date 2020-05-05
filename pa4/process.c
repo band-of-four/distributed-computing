@@ -36,5 +36,6 @@ int working(Process p, FILE *event_file) {
   }
   log_done(&p, event_file);                     /* logging DONE to a console and event file */
   close_pipes(&p);                              /* закрываем все пайпы */
+  printf("THATS ALL FOLKS!!! from %d\n\n", p.id);
   return 0;
 }

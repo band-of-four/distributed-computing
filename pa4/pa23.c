@@ -136,6 +136,7 @@ int main(int argc, char *argv[]) {
 
   // получение done
   Message received_mes;
+
   for (int i = 1; i <= n; ++i) {
     received_mes.s_header.s_type = -1;
     while (received_mes.s_header.s_type != DONE) {
@@ -144,7 +145,7 @@ int main(int argc, char *argv[]) {
     printf("Parent received DONE: %d from %d\n", received_mes.s_header.s_type, i); // debug print
   }
 
-  sleep(1);
+  //sleep(1);
 
   for (int i = 1; i <= n; ++i) {
     // я пока не уверена, какой именно надо закрыть

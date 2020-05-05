@@ -76,7 +76,7 @@ void report_done(Process *p) {
   header_done.s_magic = MESSAGE_MAGIC;
   message_done.s_header = header_done;;
 
-  send(p, 0, &message_done);
+  send_multicast(p, &message_done);
 }
 
 /* закрываем все пайпы */
@@ -181,8 +181,6 @@ void process_mutex(Process *p) {
               queue[k] = queue[k + 1];        // циклический сдвиг вправо начиная с удаляемого
             break;
           }
-          /* сортируем очередь по приоритету <временная метка, номер потока> */
-          //qsort((void *) queue, capacity, sizeof(QueueItem), compare);
           capacity--;
         }
       }
