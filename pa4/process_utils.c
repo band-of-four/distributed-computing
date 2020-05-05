@@ -20,9 +20,9 @@ int compare(const void *p, const void *q) {
   QueueItem *a1 = (QueueItem *) p;
   QueueItem *a2 = (QueueItem *) q;
   if (a1->time == a2->time)
-    return a1->id < a2->id;
+    return a1->id > a2->id;
   else
-    return a1->time < a2->time;
+    return a1->time > a2->time;
 }
 
 /* logging STARTED to a console and event file */
@@ -177,12 +177,14 @@ void process_mutex(Process *p) {
         /* выселяем из очереди */
         for (int j = 0; j < capacity; ++j) {
           if (queue[j].id == i) {
-            /* процессы с id = -1 не учитываются при подсчете самого */
+            /* процессы с id = 100 не учитываются при подсчете самого */
             /* приоритетного */
-            queue[j].id = -1;
+            queue[j].id = 100;
+            queue[j].time = 1000;
           }
           /* сортируем очередь по приоритету <временная метка, номер потока> */
           qsort((void *) queue, capacity, sizeof(QueueItem), compare);
+          capacity--;
         }
       }
       /* пришло сообщение об окончании работы -- считаем количество работающих потоков */
