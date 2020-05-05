@@ -140,7 +140,7 @@ void process_mutex(Process *p) {
 
   for (;;) {
     for (int i = 1; i <= 11; ++i) {
-      
+
       /* если все завершили работу -- выходим */
       if (done_counter == n)
         return;
@@ -173,7 +173,15 @@ void process_mutex(Process *p) {
         /* заносим в очередь */
         queue[capacity].id = i;
         queue[capacity++].time = received_mes.s_header.s_local_time;
+        for (int j = 0; j < capacity; ++j) {
+          if (queue[j].id == p->id) {
+            queue[j].time = header.s_local_time;
+            break;
+          }
+        }
         qsort((void *) queue, capacity, sizeof(QueueItem), compare);
+        printf("The best process for %d is %d with time %d\n", p->id, queue[0].id, queue[0].time);
+        printf("The second process for %d is %d with time %d\n", p->id, queue[1].id, queue[1].time);
       }
 
       /* пришло сообщение об отпускании критической зоны, выселяем процесс из очереди */
