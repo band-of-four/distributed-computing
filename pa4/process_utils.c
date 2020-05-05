@@ -147,7 +147,8 @@ void process_mutex(Process *p) {
       /* если не существует такого процесса -- пропускаем */
       /* ждем сообщение */
       received_mes.s_header.s_type = -1;
-      if (p->channels[i][0] == -1 || i == p->id || receive(p, i, &received_mes) > 0) continue;
+      if ((p->channels[i][0] == -1 || i == p->id || receive(p, i, &received_mes) > 0)
+        && done_counter != n - 1) continue;
 
       /* проверяем тип сообщения */
 
@@ -180,18 +181,17 @@ void process_mutex(Process *p) {
         /* выселяем из очереди */
         for (int j = 0; j < capacity; ++j) {
           if (queue[j].id == i) {
-            for (int k = j; k < n; k++)
+            for (int k = j; k <= n; k++)
               queue[k] = queue[k + 1];        // циклический сдвиг вправо начиная с удаляемого
+            capacity--;
             break;
           }
-          capacity--;
         }
       }
       /* пришло сообщение об окончании работы -- считаем количество работающих потоков */
-      if (received_mes.s_header.s_type == DONE) {
+      if (received_mes.s_header.s_type == DONE)
         done_counter++;
-      }
-      
+
       if (done_counter == n)
         return;
 
