@@ -140,7 +140,10 @@ void process_mutex(Process *p) {
 
   for (;;) {
     for (int i = 1; i <= 11; ++i) {
-
+      
+      /* если все завершили работу -- выходим */
+      if (done_counter == n)
+        return;
       /* если не существует такого процесса -- пропускаем */
       /* ждем сообщение */
       received_mes.s_header.s_type = -1;
@@ -188,11 +191,9 @@ void process_mutex(Process *p) {
       if (received_mes.s_header.s_type == DONE) {
         done_counter++;
       }
-
-      /* если все завершили работу -- выходим */
-      if (done_counter == n) {
+      
+      if (done_counter == n)
         return;
-      }
 
       /* если мы первые в очереди -- делаем работу и отправляем релиз */
       if (iter <= iter_max && queue[0].id == p->id && received_rep == n - 1) {
@@ -206,6 +207,8 @@ void process_mutex(Process *p) {
           report_done(p);                              /* пишем done */
           done_counter++;
           printf("Proc %d завершил работу.\n", p->id);
+          if (done_counter == n)
+            return;
         } else {
           request_cs(p);
           received_rep = 0;
