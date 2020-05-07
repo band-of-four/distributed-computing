@@ -118,13 +118,14 @@ void process_mutex(Process *p) {
   int done_counter = 0;
   QueueItem queue[12];
   int capacity = 0;
-  /* заносим этот процесс в очередь */
-  timestamp_t t = get_lamport_time();
-  queue[0].id = p->id;
-  queue[0].time = t;
-  capacity = 1;
+
   /* отправляем запрос на занятие критической области */
   request_cs(p);
+
+  /* заносим этот процесс в очередь */
+  queue[0].id = p->id;
+  queue[0].time = get_lamport_time();
+  capacity = 1;
 
   /* выясняем сколько процессов (может можно как-то лучше) */
   int n = 0;
@@ -173,15 +174,7 @@ void process_mutex(Process *p) {
         /* заносим в очередь */
         queue[capacity].id = i;
         queue[capacity++].time = received_mes.s_header.s_local_time;
-        for (int j = 0; j < capacity; ++j) {
-          if (queue[j].id == p->id) {
-            queue[j].time = header.s_local_time;
-            break;
-          }
-        }
         qsort((void *) queue, capacity, sizeof(QueueItem), compare);
-        printf("The best process for %d is %d with time %d\n", p->id, queue[0].id, queue[0].time);
-        printf("The second process for %d is %d with time %d\n", p->id, queue[1].id, queue[1].time);
       }
 
       /* пришло сообщение об отпускании критической зоны, выселяем процесс из очереди */
@@ -189,8 +182,10 @@ void process_mutex(Process *p) {
         /* выселяем из очереди */
         for (int j = 0; j < capacity; ++j) {
           if (queue[j].id == i) {
-            for (int k = j; k <= n; k++)
-              queue[k] = queue[k + 1];        // циклический сдвиг вправо начиная с удаляемого
+            for (int k = j; k < capacity - 1; k++) {
+              queue[k].id = queue[k+1].id;
+              queue[k].time = queue[k+1].time;
+            }// циклический сдвиг вправо начиная с удаляемого
             capacity--;
             break;
           }
@@ -208,6 +203,11 @@ void process_mutex(Process *p) {
         char *buff = (char *) malloc(strlen(log_loop_operation_fmt) + sizeof(int) * 3);
         sprintf(buff, log_loop_operation_fmt, p->id, iter++, iter_max);
         print(buff);
+        for (int k = 0; k < capacity - 1; k++) {
+          queue[k].id = queue[k + 1].id;
+          queue[k].time = queue[k + 1].time;
+        } // сдвиг вправо начиная с удаляемого
+        capacity--;
         received_rep = 0;
         release_cs(p);
         if (iter > iter_max) {
@@ -219,6 +219,9 @@ void process_mutex(Process *p) {
             return;
         } else {
           request_cs(p);
+          queue[capacity].id = p->id;
+          queue[capacity++].time = get_lamport_time();
+          qsort((void *) queue, capacity, sizeof(QueueItem), compare);
           received_rep = 0;
         }
       }
