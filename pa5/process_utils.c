@@ -16,6 +16,8 @@ typedef struct {
   timestamp_t time;
 } QueueItem;
 
+timestamp_t req_time = 0;
+
 int compare(const void *p, const void *q) {
   QueueItem *a1 = (QueueItem *) p;
   QueueItem *a2 = (QueueItem *) q;
@@ -91,6 +93,7 @@ int request_cs(const void * self) {
   Message message;
   sprintf(message.s_payload, "f");
   local_time++;
+  req_time = get_lamport_time();
   // ------------------------
   MessageHeader header;
   header.s_local_time = get_lamport_time();
@@ -116,19 +119,13 @@ void process_mutex(Process *p) {
   int iter_max = p->id * 5;
   int iter = 1;
   int done_counter = 0;
-  QueueItem queue[12];
-  int capacity = 0;
 
   /* отправляем запрос на занятие критической области */
   request_cs(p);
 
-  /* заносим этот процесс в очередь */
-  queue[0].id = p->id;
-  queue[0].time = get_lamport_time();
-  capacity = 1;
-
   /* выясняем сколько процессов (может можно как-то лучше) */
   int n = 0;
+
   for (int i = 0; i <= 11; ++i) {
     if (p->channels[i][0] == -1 && i != p->id) {
       n = i - 1;
@@ -136,9 +133,10 @@ void process_mutex(Process *p) {
     }
   }
 
+  int queue_reply[n];
+  int capacity_reply = 0;
   int received_rep = 0;
   Message received_mes;
-
   for (;;) {
     for (int i = 1; i <= 11; ++i) {
 
@@ -153,43 +151,29 @@ void process_mutex(Process *p) {
 
       /* проверяем тип сообщения */
 
-      /* если пришел reply -- увеличиваем счетчик reply'ев */
-      if (received_mes.s_header.s_type == CS_REPLY) {
-        received_rep++;
-      }
-
       /* если получили request отправляем свои данные и записываем в очередь */
       if (received_mes.s_header.s_type == CS_REQUEST) {
-        Message message;
-        local_time++;
-        // ------------------------
-        MessageHeader header;
-        header.s_local_time = get_lamport_time();
-        header.s_payload_len = 0;
-        header.s_type = CS_REPLY;
-        header.s_magic = MESSAGE_MAGIC;
-        message.s_header = header;
-        // ------------------------
-        send(p, i, &message);
-        /* заносим в очередь */
-        queue[capacity].id = i;
-        queue[capacity++].time = received_mes.s_header.s_local_time;
-        qsort((void *) queue, capacity, sizeof(QueueItem), compare);
-      }
-
-      /* пришло сообщение об отпускании критической зоны, выселяем процесс из очереди */
-      if (received_mes.s_header.s_type == CS_RELEASE) {
-        /* выселяем из очереди */
-        for (int j = 0; j < capacity; ++j) {
-          if (queue[j].id == i) {
-            for (int k = j; k < capacity - 1; k++) {
-              queue[k].id = queue[k+1].id;
-              queue[k].time = queue[k+1].time;
-            }// циклический сдвиг вправо начиная с удаляемого
-            capacity--;
-            break;
-          }
+        if ((received_mes.s_header.s_local_time < req_time)
+            || (received_mes.s_header.s_local_time == req_time && i < p->id)
+            || iter > iter_max) {
+          Message message;
+          local_time++;
+          // ------------------------
+          MessageHeader header;
+          header.s_local_time = get_lamport_time();
+          header.s_payload_len = 0;
+          header.s_type = CS_REPLY;
+          header.s_magic = MESSAGE_MAGIC;
+          message.s_header = header;
+          // ------------------------
+          send(p, i, &message);
+        } else {
+          queue_reply[capacity_reply++] = i;
         }
+      }
+      /* пришло сообщение об отпускании критической зоны, выселяем процесс из очереди */
+      if (received_mes.s_header.s_type == CS_REPLY) {
+        received_rep++;
       }
       /* пришло сообщение об окончании работы -- считаем количество работающих потоков */
       if (received_mes.s_header.s_type == DONE)
@@ -199,17 +183,25 @@ void process_mutex(Process *p) {
         return;
 
       /* если мы первые в очереди -- делаем работу и отправляем релиз */
-      if (iter <= iter_max && queue[0].id == p->id && received_rep == n - 1) {
+      if (iter <= iter_max && received_rep == n - 1) {
         char *buff = (char *) malloc(strlen(log_loop_operation_fmt) + sizeof(int) * 3);
         sprintf(buff, log_loop_operation_fmt, p->id, iter++, iter_max);
         print(buff);
-        for (int k = 0; k < capacity - 1; k++) {
-          queue[k].id = queue[k + 1].id;
-          queue[k].time = queue[k + 1].time;
-        } // сдвиг вправо начиная с удаляемого
-        capacity--;
         received_rep = 0;
-        release_cs(p);
+        for (int k = 0; k < capacity_reply; ++k) {
+          Message message;
+          local_time++;
+          // ------------------------
+          MessageHeader header;
+          header.s_local_time = get_lamport_time();
+          header.s_payload_len = 0;
+          header.s_type = CS_REPLY;
+          header.s_magic = MESSAGE_MAGIC;
+          message.s_header = header;
+          // ------------------------
+          send(p, queue_reply[k], &message);
+        }
+        capacity_reply = 0;
         if (iter > iter_max) {
           // Отправляем сообщение DONE
           report_done(p);                              /* пишем done */
@@ -219,9 +211,6 @@ void process_mutex(Process *p) {
             return;
         } else {
           request_cs(p);
-          queue[capacity].id = p->id;
-          queue[capacity++].time = get_lamport_time();
-          qsort((void *) queue, capacity, sizeof(QueueItem), compare);
           received_rep = 0;
         }
       }
