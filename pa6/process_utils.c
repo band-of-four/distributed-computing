@@ -110,15 +110,14 @@ int request_cs(const void * self) {
   return 0;
 }
 
-
-// из этого метода процесс выходит
-// только тогда, когда наступает
-// его очередь входить в
-// критическую область
 void process_mutex(Process *p) {
   int iter_max = p->id * 5;
   int iter = 1;
   int done_counter = 0;
+
+  int fork[11] = {0};
+  int dirty[11] = {0};
+  int reqf[11] = {0};
 
   /* отправляем запрос на занятие критической области */
   request_cs(p);
@@ -133,6 +132,14 @@ void process_mutex(Process *p) {
     }
   }
 
+  for (int i = 0; i < 11; ++i) {
+    if (i == p->id || i > n) {
+      fork[i] = -1;
+      dirty[i] = -1;
+      reqf[i] = -1;
+    }
+  }
+  
   int queue_reply[n];
   int capacity_reply = 0;
   int received_rep = 0;
